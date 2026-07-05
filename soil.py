@@ -5,6 +5,13 @@ import joblib
 import json
 import os
 
+# Tab Configuration
+st.set_page_config(
+    page_title="Athr Forensic Soil Provenance Dasboard",
+    page_icon="🔬", # You can use an emoji or a path to your icfs.png icon
+    layout="wide"
+)
+
 # Page Configuration
 st.set_page_config(page_title="Athr Forensic Soil Provenance Dasboard", layout="wide")
 
