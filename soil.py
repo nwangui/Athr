@@ -7,13 +7,13 @@ import os
 
 # Tab Configuration
 st.set_page_config(
-    page_title="Athr Forensic Soil Provenance Dasboard",
-    page_icon="🔬", # You can use an emoji or a path to your icfs.png icon
+    page_title="Athr Forensic Soil Provenance Dashboard",
+    page_icon="🔬",
     layout="wide"
 )
 
 # Page Configuration
-st.set_page_config(page_title="Athr Forensic Soil Provenance Dasboard", layout="wide")
+st.set_page_config(page_title="Athr Forensic Soil Provenance Dashboard", layout="wide")
 
 logo_col_left, logo_col_center, logo_col_right = st.columns([1, 1, 0.5])
 with logo_col_left: st.image("dubai_g.png", width=150)
