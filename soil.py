@@ -6,7 +6,7 @@ import json
 import os
 
 # Page Configuration
-st.set_page_config(page_title="UAE Soil Forensics Dashboard", layout="wide")
+st.set_page_config(page_title="Athr Forensic Soil Provenance Dasboard", layout="wide")
 
 logo_col_left, logo_col_center, logo_col_right = st.columns([1, 1, 0.5])
 with logo_col_left: st.image("dubai_g.png", width=150)
