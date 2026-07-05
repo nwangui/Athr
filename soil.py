@@ -5,13 +5,6 @@ import joblib
 import json
 import os
 
-# Tab Configuration
-st.set_page_config(
-    page_title="Athr Forensic Soil Provenance Dashboard",
-    page_icon="🔬",
-    layout="wide"
-)
-
 # Page Configuration
 st.set_page_config(page_title="Athr Forensic Soil Provenance Dashboard", layout="wide")
 
@@ -21,7 +14,7 @@ with logo_col_center: st.image("icfs.png", width=150)
 with logo_col_right: st.image("dubai_pol.png", width=150)
 
 st.markdown("<hr style='margin-top: 0px; margin-bottom: 25px;'>", unsafe_allow_html=True)
-st.title(" Forensic Soil Provenance Mapping Tool")
+st.title(" Athr Forensic Soil Provenance Mapping Dashboard")
 st.write(
     "This is an artificial intelligence tool that utilizes parallel multi-output random forest regression layers alongside classification encoders to determine the geographic location and map coordinate values simultaneously.")
 
