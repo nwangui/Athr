@@ -166,11 +166,21 @@ if submit_button:
         soil_type_clue = "Quartzitic / Silicate desert sand dune profile"
         region_clue = "Inland desert buffer system (e.g., Southern / South-Eastern sand expanses)"
 
-    # CRITICAL EVALUATION OF STRANGE pH RANGES (4.0 and 6.0)
-    if ph_val <= 4.5:
+    if ph_val > 14.0:
+        soil_type_clue = "Invalid / Out of Bounds Data Matrix"
+        ph_explanation = f"🚨 **CRITICAL DATA ANOMALY:** The submitted profile contains an impossible chemical value (pH {ph_val}). The standard universal logarithmic pH scale operates strictly between 0.0 and 14.0."
+        anomaly_warning = "⚠️ **FORENSIC ERROR:** A pH value this extreme indicates a significant data corruption event, an incorrect machine telemetry export, or a critical input entry mistake. Pipeline execution has been flagged for manual review."
+
+        # Display the error layout immediately to the user and halt further page generation
+        st.error(
+            f"🚨 **Critical Input Anomaly Detected:** pH value of {ph_val} is physically impossible. Please verify your lab instrumentation readout.")
+        st.stop()
+
+    elif ph_val <= 4.5:
         soil_type_clue = "Extremely Acidic Chemically-Altered Matrix"
         ph_explanation = f"🚨 **CRITICAL ANOMALY:** The sample exhibits an extreme, highly unnatural acidic profile (pH {ph_val}). Standard UAE soils are inherently alkaline. A pH this low cannot occur naturally in the local environment."
         anomaly_warning = "⚠️ **FORENSIC NOTE FOR INVESTIGATORS:** This indicates point-source human intervention or contamination, such as industrial acid dumping, vehicle battery leakage, or chemical grave accelerants. The coordinate prediction focuses strictly on commercial/industrial zones capable of supporting this footprint."
+
     elif 4.5 < ph_val <= 6.5:
         soil_type_clue = "Artificially Managed / Cultivated Soil Topsoil"
         ph_explanation = f"🌱 **MODIFIED ANOMALY:** The sample exhibits a mildly acidic profile (pH {ph_val}). Because native UAE soils are naturally basic, this indicates localized soil modification."
