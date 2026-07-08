@@ -242,8 +242,8 @@ if submit_button:
         st.subheader("Chemometric Interpretation & Feature Justification")
         st.markdown(f"""
             **Statistical Attribution Profile:**
-            * **Classification Layer Engine:** RandomForestClassifier — Responsible for deterministic region matching.
-            * **Regression Layer Engine:** Multi-Output RandomForestRegressor — Responsible for raw coordinate interpolation.
+            * **Classification Layer Engine:** Random Forest Classifier — Responsible for deterministic region matching.
+            * **Regression Layer Engine:** Multi-Output Random Forest Regressor — Responsible for raw coordinate interpolation.
             * **Resolved Mineral Signature:** Classified as an active *{soil_type_clue}*.
             * **Primary Provenance Drivers:** * A stabilization of **pH at {ph_val}** indicates an environmental profile typical of {region_clue}.
               * Trace indicators—specifically **{top1_name} ({top1_val:.2f}%)**, **{top2_name} ({top2_val:.2f}%)**, and **{top3_name} ({top3_val:.2f}%)** - served as primary geographic weights, checking against baseline records to lock down exact location parameters.
