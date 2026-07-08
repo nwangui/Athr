@@ -2,7 +2,8 @@ import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, LabelEncoder
-from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.neighbors import KNeighborsRegressor
 from sklearn.metrics import mean_squared_error
 import joblib
 import json
@@ -83,8 +84,8 @@ X_test_scaled = scaler.transform(X_test)
 # ==========================================
 print(" Training Hybrid AI Engine (Classifier + Regressor)...")
 
-# Train Regressor for unknown coordinates mapping
-regressor_model = RandomForestRegressor(n_estimators=150, max_depth=10, random_state=42)
+# Train Regressor for unknown coordinates mapping. High-efficiency spatial proximity engine for small datasets
+regressor_model = KNeighborsRegressor(n_neighbors=3, weights='distance', metric='minkowski')
 regressor_model.fit(X_train_scaled, y_train_reg)
 
 # Train Classifier for strict label boundary detection
