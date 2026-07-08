@@ -222,6 +222,20 @@ if submit_button:
         ph_explanation = f"🌱 **MODIFIED ANOMALY:** The sample exhibits a mildly acidic profile (pH {ph_val}). Because native UAE soils are naturally basic, this indicates localized soil modification."
         anomaly_warning = "💡 **FORENSIC NOTE FOR INVESTIGATORS:** This profile is typical of heavily managed agricultural ecosystems, commercial indoor greenhouses, or imported parkland topsoils treated with sulfur and organic fertilizers."
 
+    # Technical and Non-Technical Report
+    current_elements = {
+        "Silicon (Si)": si_pct, "Magnesium (Mg)": mg_pct, "Aluminum (Al)": al_pct, "Iron (Fe)": fe_pct,
+        "Calcium (Ca)": ca_pct, "Titanium (Ti)": ti_pct, "Strontium (Sr)": sr_pct, "Sulfur Primary (S)": s_first_pct,
+        "Manganese (Mn)": mn_pct, "Chromium (Cr)": cr_pct, "Rhodium (Rh)": rh_pct, "Scandium (Sc)": sc_pct,
+        "Zirconium (Zr)": zr_pct, "Potassium (K)": k_pct, "Phosphorus (P)": p_pct, "Sulfur Secondary (S1)": s_second_pct
+    }
+    # Sort from highest concentration to lowest
+    sorted_elements = sorted(current_elements.items(), key=lambda x: x[1], reverse=True)
+    top1_name, top1_val = sorted_elements[0]
+    top2_name, top2_val = sorted_elements[1]
+    top3_name, top3_val = sorted_elements[2]
+
+
     tab1, tab2 = st.tabs(["⚙️ Technical Summary", "⚖️ Non-Technical Legal Courtroom Trace Evidence Statement"])
 
     with tab1:
@@ -232,7 +246,7 @@ if submit_button:
             * **Regression Layer Engine:** Multi-Output RandomForestRegressor — Responsible for raw coordinate interpolation.
             * **Resolved Mineral Signature:** Classified as an active *{soil_type_clue}*.
             * **Primary Provenance Drivers:** * A stabilization of **pH at {ph_val}** indicates an environmental profile typical of {region_clue}.
-              * Trace indicators—specifically **Rhodium ({rh_pct}%)**, **Zirconium ({zr_pct}%)**, and **Silicon ({si_pct}%)**—served as primary geographic weights, checking against baseline records to lock down exact location parameters.
+              * Trace indicators—specifically **{top1_name} ({top1_val:.2f}%)**, **{top2_name} ({top2_val:.2f}%)**, and **{top3_name} ({top3_val:.2f}%)** - served as primary geographic weights, checking against baseline records to lock down exact location parameters.
 
             **Algorithmic Reasoning:**
             The hybrid pipeline processed the 17-dimensional chemometric matrix across parallel networks. The categorization layer successfully bypassed coordinate smoothing errors by assigning a definite categorical match (**{matched_zone}**), while the multi-output regressor accurately plotted the continuous spatial coordinates to `({reg_lat:.6f}, {reg_lon:.6f})` without localized averaging limits.
