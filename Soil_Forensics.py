@@ -85,7 +85,7 @@ X_test_scaled = scaler.transform(X_test)
 print(" Training Hybrid AI Engine (Classifier + Regressor)...")
 
 # Train Regressor for unknown coordinates mapping. High-efficiency spatial proximity engine for small datasets
-regressor_model = KNeighborsRegressor(n_neighbors=3, weights='distance', metric='minkowski')
+regressor_model = KNeighborsRegressor(n_neighbors=2, weights='distance', metric='minkowski')
 regressor_model.fit(X_train_scaled, y_train_reg)
 
 # Train Classifier for strict label boundary detection
