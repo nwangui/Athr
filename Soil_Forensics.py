@@ -71,7 +71,7 @@ y_classifier = df['Zone_Encoded']
 
 print(f"✅ Data recovery complete. Rows found: {len(df)}")
 
-# --- Split Using 80:20 trainig and testing split
+# --- Split Using 80:20 training and testing split
 X_train, X_test, y_train_reg, y_test_reg = train_test_split(X, y_regressor, test_size=0.2, random_state=42)
 _, _, y_train_cls, y_test_cls = train_test_split(X, y_classifier, test_size=0.2, random_state=42)
 
