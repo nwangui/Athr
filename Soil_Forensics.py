@@ -88,7 +88,7 @@ print(" Training Hybrid AI Engine (Classifier + Regressor)...")
 regressor_model = KNeighborsRegressor(n_neighbors=2, weights='distance', metric='minkowski')
 regressor_model.fit(X_train_scaled, y_train_reg)
 
-# Train Classifier for strict label boundary detection
+# Train Classifier for zone  detection
 classifier_model = RandomForestClassifier(n_estimators=150, max_depth=12, random_state=42)
 classifier_model.fit(X_train_scaled, y_train_cls)
 
