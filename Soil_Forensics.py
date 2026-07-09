@@ -114,4 +114,11 @@ metrics_payload = {
 
 with open("model_accuracy_metrics.json", "w") as f:
     json.dump(metrics_payload, f)
+
+print("\n" + "="*50)
+print("Model Accuracy Metrics:")
+print("="*50)
+print(json.dumps(metrics_payload, indent=4))
+print("="*50 + "\n")
+
 print("✅ Success: Performance metrics shared to JSON.")
