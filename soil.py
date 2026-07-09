@@ -150,31 +150,53 @@ if submit_button:
                             'S (wt.%)', 'Mn (wt.%)', 'Cr (wt.%)', 'Rh (wt.%)', 'Sc (wt.%)', 'Zr (wt.%)', 'K (wt.%)',
                             'P (wt.%)', 'S1 (wt.%)', 'pH']
     profile_df = pd.DataFrame([live_unknown_evidence])[exact_training_order]
-    scaled_profile = scaler.transform(profile_df)
 
-    # Executing Parallel Targets
+    # ==========================================================
+    # INSERT THE POST-PREDICTION PROXIMITY SORT HERE
+    # ==========================================================
+    # 1. Run the Classifier on the 17 pure chemical elements
+    scaled_profile = scaler.transform(profile_df)
     predicted_encoded = cls_model.predict(scaled_profile)[0]
     matched_zone = encoder.inverse_transform([predicted_encoded])[0]
 
+    # 2. Run the Regressor to get the raw unconstrained coordinates
     predicted_coords = reg_model.predict(scaled_profile)[0]
-    reg_lat, reg_lon = predicted_coords[0], predicted_coords[1]
+    raw_lat, raw_lon = predicted_coords[0], predicted_coords[1]
 
-    # Hybrid Coordinate Matrix Target Allocations
-    final_lat = reg_lat
-    final_lon = reg_lon
-
+    # 3. Pull the underlying Excel database to find the closest match WITHIN the classified zone
     try:
-        ref_df = pd.read_pickle("soil_reference_lookup.pkl")
-        zone_matches = ref_df[ref_df['Zone Description'] == matched_zone]
+        db_df = pd.read_excel("UAE Soil Database.xlsx")
+        db_df[['Lat', 'Lon']] = db_df['location coordinates'].str.split(',', expand=True).astype(float)
 
-        if not zone_matches.empty:
+        # Filter down strictly to rows matching the classified zone text
+        zone_subset = db_df[db_df['Zone Description'] == matched_zone]
+
+        if not zone_subset.empty:
+            # Calculate the straight-line spatial distance between the raw predicted coordinates
+            # and the actual coordinates of the baseline samples inside that specific zone
+            zone_subset['distance_to_pred'] = np.sqrt(
+                (zone_subset['Lat'] - raw_lat) ** 2 + (zone_subset['Lon'] - raw_lon) ** 2
+            )
+
+            # Find the baseline sample within that zone that is physically closest to the prediction
+            closest_sample = zone_subset.loc[zone_subset['distance_to_pred'].idxmin()]
+
+            # Snap the final map pin to the actual baseline coordinates of that sample
+            final_lat = closest_sample['Lat']
+            final_lon = closest_sample['Lon']
             resolution_method = f"Verified Spatial Signature ({matched_zone})"
         else:
+            final_lat, final_lon = raw_lat, raw_lon
             resolution_method = "Unmapped/New Local Profile"
-    except Exception:
+
+    except Exception as e:
+        # Fallback if Excel reading encounters an issue during runtime
+        final_lat, final_lon = raw_lat, raw_lon
         resolution_method = "Continuous Regressor Estimation"
 
+        # KEEP THIS: Green success message box on your live screen
     st.success(" Analysis Complete!")
+
 
     col_out1, col_out2, col_out3 = st.columns(3)
     with col_out1:
