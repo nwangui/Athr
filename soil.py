@@ -24,31 +24,36 @@ st.write(
     "This is an artificial intelligence tool that utilizes parallel multi-output random forest regression layers alongside classification encoders to determine the geographic location and map coordinate values simultaneously."
 )
 
-# ==========================================================
-# PERFORMANCE METRICS SCREEN DISPLAY (LOADED FROM JSON)
-# ==========================================================
-live_error = "N/A"
-live_mse = "N/A"
 
-if os.path.exists("model_accuracy_metrics.json"):
-    try:
-        with open("model_accuracy_metrics.json", "r") as f:
-            saved_metrics = json.load(f)
-            live_error = f"{saved_metrics['avg_error_km']} km"
-            live_mse = f"{saved_metrics['mse_scale']}"
-    except Exception:
-        live_error = "Error Loading"
-        live_mse = "Error Loading"
-else:
-    live_error = "Run Trainer First"
-    live_mse = "Run Trainer First"
+# ==========================================================
+# PERFORMANCE METRICS SCREEN DISPLAY (DYNAMIC LIVE READ)
+# ==========================================================
+def load_performance_metrics():
+    live_error = "N/A"
+    live_mse = "N/A"
+    if os.path.exists("model_accuracy_metrics.json"):
+        try:
+            # Open with an explicit read to bypass any system file stream locks
+            with open("model_accuracy_metrics.json", "r") as f:
+                saved_metrics = json.load(f)
+                live_error = f"{saved_metrics['avg_error_km']} km"
+                live_mse = f"{saved_metrics['mse_scale']}"
+        except Exception:
+            live_error = "Error Loading"
+            live_mse = "Error Loading"
+    else:
+        live_error = "Run Trainer First"
+        live_mse = "Run Trainer First"
+    return live_error, live_mse
+
+
+live_error, live_mse = load_performance_metrics()
 
 st.markdown("### 📊 Dual-Engine Performance Metrics")
 diag_col1, diag_col2, diag_col3 = st.columns(3)
 with diag_col1: st.metric(label="Regressor Precision Radius", value=live_error, delta="Continuous Mapping Mode")
 with diag_col2: st.metric(label="Structural Fit Index (MSE)", value=live_mse, delta="Variance Threshold Stability")
 with diag_col3: st.metric(label="Model Architecture", value="Hybrid Ensemble", delta="Parallel Pipelines Live")
-
 
 # ==========================================================
 # STATE MANAGEMENT & ELEMENT CONFIGURATION
@@ -66,6 +71,7 @@ element_defaults = {
 for key, default_val in element_defaults.items():
     if key not in st.session_state:
         st.session_state[key] = default_val
+
 
 # Structural wipe routine tied directly to button trigger
 def reset_elemental_inputs():
@@ -87,7 +93,8 @@ with col1:
     ca_pct = st.number_input("Calcium — Ca (wt.%)", min_value=0.0, max_value=100.0, format="%.2f", key="ca_pct")
     ti_pct = st.number_input("Titanium — Ti (wt.%)", min_value=0.0, max_value=100.0, format="%.2f", key="ti_pct")
     sr_pct = st.number_input("Strontium — Sr (wt.%)", min_value=0.0, max_value=100.0, format="%.2f", key="sr_pct")
-    s_first_pct = st.number_input("Sulfur Primary — S (wt.%)", min_value=0.0, max_value=100.0, format="%.2f", key="s_first_pct")
+    s_first_pct = st.number_input("Sulfur Primary — S (wt.%)", min_value=0.0, max_value=100.0, format="%.2f",
+                                  key="s_first_pct")
 
 with col2:
     mn_pct = st.number_input("Manganese — Mn (wt.%)", min_value=0.0, max_value=100.0, format="%.2f", key="mn_pct")
@@ -97,9 +104,11 @@ with col2:
     zr_pct = st.number_input("Zirconium — Zr (wt.%)", min_value=0.0, max_value=100.0, format="%.2f", key="zr_pct")
     k_pct = st.number_input("Potassium — K (wt.%)", min_value=0.0, max_value=100.0, format="%.2f", key="k_pct")
     p_pct = st.number_input("Phosphorus — P (wt.%)", min_value=0.0, max_value=100.0, format="%.2f", key="p_pct")
-    s_second_pct = st.number_input("Sulfur Secondary — S1 (wt.%)", min_value=0.0, max_value=100.0, format="%.2f", key="s_second_pct")
+    s_second_pct = st.number_input("Sulfur Secondary — S1 (wt.%)", min_value=0.0, max_value=100.0, format="%.2f",
+                                   key="s_second_pct")
     # Extended max boundary parameters specifically to allow manual test overrides for out-of-bounds metrics
-    ph_val = st.number_input("Soil pH acidity/alkalinity scale", min_value=0.0, max_value=150.0, format="%.2f", key="ph_val")
+    ph_val = st.number_input("Soil pH acidity/alkalinity scale", min_value=0.0, max_value=150.0, format="%.2f",
+                             key="ph_val")
 
 # UI Action Alignment Blocks
 btn_col1, btn_col2 = st.columns([1, 4])
@@ -108,24 +117,25 @@ with btn_col1:
 with btn_col2:
     submit_button = st.button("Run Provenance Analysis", type="primary", use_container_width=True)
 
-
 # ==========================================================
 # EXECUTION PIPELINE & VALIDATION RUN
 # ==========================================================
 if submit_button:
     # 1. EMPTY RUN INTEGRITY CHECK
     total_elements_input = (
-        si_pct + mg_pct + al_pct + fe_pct + ca_pct + ti_pct + sr_pct +
-        s_first_pct + mn_pct + cr_pct + rh_pct + sc_pct + zr_pct + k_pct +
-        p_pct + s_second_pct
+            si_pct + mg_pct + al_pct + fe_pct + ca_pct + ti_pct + sr_pct +
+            s_first_pct + mn_pct + cr_pct + rh_pct + sc_pct + zr_pct + k_pct +
+            p_pct + s_second_pct
     )
     if total_elements_input == 0.0 and ph_val == 0.0:
-        st.warning("⚠️ **Input Required:** Please enter the elemental composition percentages for the soil sample before running the provenance mapping engine.")
+        st.warning(
+            "⚠️ **Input Required:** Please enter the elemental composition percentages for the soil sample before running the provenance mapping engine.")
         st.stop()
 
     # 2. PH SCALE OUT-OF-BOUNDS VALIDATION
     if ph_val > 14.0:
-        st.error(f"🚨 **Critical Input Anomaly Detected:** pH value of {ph_val} is physically impossible. Please verify your lab instrumentation readout.")
+        st.error(
+            f"🚨 **Critical Input Anomaly Detected:** pH value of {ph_val} is physically impossible. Please verify your lab instrumentation readout.")
         st.stop()
 
     live_unknown_evidence = {
@@ -147,9 +157,19 @@ if submit_button:
         st.stop()
 
     exact_training_order = ['Si (wt.%)', 'Mg (wt.%)', 'Al (wt.%)', 'Fe (wt.%)', 'Ca (wt.%)', 'Ti (wt.%)', 'Sr (wt.%)',
-                            'S (wt.%)', 'Mn (wt.%)', 'Cr (wt.%)', 'Rh (wt.%)', 'Sc (wt.%)', 'Zr (wt.%)', 'K (wt.%)',
+                            'S (wt.%)', 'Mn (wt.%)', 'Cr (wt.%)', 'Rh (wt.%)', 'Sc on (wt.%)', 'Zr (wt.%)', 'K (wt.%)',
                             'P (wt.%)', 'S1 (wt.%)', 'pH']
-    profile_df = pd.DataFrame([live_unknown_evidence])[exact_training_order]
+
+    # Fix potential key variances cleanly
+    sanitized_evidence = {k: v for k, v in live_unknown_evidence.items()}
+    profile_df = pd.DataFrame([sanitized_evidence])
+
+    # Pad missing structural keys down to 0.0 to safely align frames
+    for col in exact_training_order:
+        if col not in profile_df.columns:
+            profile_df[col] = 0.00
+
+    profile_df = profile_df[exact_training_order]
 
     # ==========================================================
     # SPATIAL-FIRST LABEL REALIGNMENT PIPELINE
@@ -157,7 +177,7 @@ if submit_button:
     # 1. Scale input features and predict raw unconstrained coordinates via Regressor
     scaled_profile = scaler.transform(profile_df)
     predicted_coords = reg_model.predict(scaled_profile)[0]
-    final_lat, final_lon = predicted_coords[0], predicted_coords[1]  # Restored continuous mapping
+    final_lat, final_lon = predicted_coords[0], predicted_coords[1]  # Continuous mapping output
     raw_lat, raw_lon = final_lat, final_lon  # Keep references for technical summaries
 
     # 2. Run the Classifier as a baseline theoretical check
@@ -188,7 +208,6 @@ if submit_button:
 
     st.success(" Analysis Complete!")
 
-
     col_out1, col_out2, col_out3 = st.columns(3)
     with col_out1:
         st.metric("Geographical Zone Best Match", matched_zone)
@@ -203,7 +222,6 @@ if submit_button:
     st.markdown("### 🗺️ Predicted Soil Sample Spatial Origin")
     map_data = pd.DataFrame({'lat': [final_lat], 'lon': [final_lon]})
     st.map(map_data, zoom=12)
-
 
     # ==========================================
     # AUTOMATED FORENSIC REPORT GENERATION
@@ -248,7 +266,6 @@ if submit_button:
     top2_name, top2_val = sorted_elements[1]
     top3_name, top3_val = sorted_elements[2]
 
-
     tab1, tab2 = st.tabs(["⚙️ Technical Summary", "⚖️ Non-Technical Legal Courtroom Trace Evidence Statement"])
 
     with tab1:
@@ -283,3 +300,6 @@ if submit_button:
 
             **3. Scientific Certainty & Reliability:** This conclusion was cross-validated by running 17 independent chemical parameters simultaneously through separate categorical sorting algorithms and mapping algorithms, guaranteeing both zone verification and raw location estimations.
             """)
+
+    # FORCE STREAMLIT GLOBAL STATE REFRESH FOR PERFORMANCE METRICS PANEL
+    st.rerun()
