@@ -152,18 +152,18 @@ if submit_button:
     profile_df = pd.DataFrame([live_unknown_evidence])[exact_training_order]
 
     # ==========================================================
-    # INSERT THE POST-PREDICTION PROXIMITY SORT HERE
+    # SPATIAL-FIRST LABEL REALIGNMENT PIPELINE
     # ==========================================================
-    # 1. Run the Classifier on the 17 pure chemical elements
+    # 1. Scale input features and predict raw unconstrained coordinates via Regressor
     scaled_profile = scaler.transform(profile_df)
     predicted_coords = reg_model.predict(scaled_profile)[0]
     raw_lat, raw_lon = predicted_coords[0], predicted_coords[1]
 
-    # 2. Run the Classifier as a baseline check
+    # 2. Run the Classifier as a baseline theoretical check
     predicted_encoded = cls_model.predict(scaled_profile)[0]
     classifier_suggested_zone = encoder.inverse_transform([predicted_encoded])[0]
 
-    # 3. Use the physical proximity grid to determine the true final zone and pin
+    # 3. Use the physical proximity grid to determine the true final zone and snapped pin
     try:
         db_df = pd.read_excel("UAE Soil Database.xlsx")
         db_df[['Lat', 'Lon']] = db_df['location coordinates'].str.split(',', expand=True).astype(float)
@@ -176,11 +176,11 @@ if submit_button:
         # Find the absolute closest authentic sample row from the database
         closest_sample = db_df.loc[db_df['distance_to_pred'].idxmin()]
 
-        # Snap map coordinates to this physical baseline point
+        # Snap final map coordinates to this physical baseline point
         final_lat = closest_sample['Lat']
         final_lon = closest_sample['Lon']
 
-        # OVERRIDE THE CLASSIFIER TEXT: Force the label to match the true geographic neighbor
+        # FORCE RE-ALIGNMENT: Let proximity geometry overwrite the classification label text
         matched_zone = closest_sample['Zone Description']
         resolution_method = f"Spatial Proximity Alignment ({matched_zone})"
 
@@ -190,7 +190,7 @@ if submit_button:
         matched_zone = classifier_suggested_zone
         resolution_method = "Continuous Regressor Estimation"
 
-    st.success(" Analysis Complete!")
+    st.success("🎉 Analysis Complete!")
 
 
     col_out1, col_out2, col_out3 = st.columns(3)
@@ -198,10 +198,10 @@ if submit_button:
         st.metric("Geographical Zone Best Match", matched_zone)
     with col_out2:
         st.metric("Geographical Latitude", f"{final_lat:.6f}",
-                  delta=resolution_method if "Database" in resolution_method else None)
+                  delta=resolution_method if "Spatial" in resolution_method else None)
     with col_out3:
         st.metric("Geographical Longitude", f"{final_lon:.6f}",
-                  delta="Locked to Baseline" if "Database" in resolution_method else None)
+                  delta="Locked to Baseline" if "Spatial" in resolution_method else None)
 
     # Map Rendering using corrected tracking parameters
     st.markdown("### 🗺️ Predicted Soil Sample Spatial Origin")
@@ -239,7 +239,7 @@ if submit_button:
         ph_explanation = f"🌱 **MODIFIED ANOMALY:** The sample exhibits a mildly acidic profile (pH {ph_val}). Because native UAE soils are naturally basic, this indicates localized soil modification."
         anomaly_warning = "💡 **FORENSIC NOTE FOR INVESTIGATORS:** This profile is typical of heavily managed agricultural ecosystems, commercial indoor greenhouses, or imported parkland topsoils treated with sulfur and organic fertilizers."
 
-    # Technical and Non-Technical Report
+    # Technical and Non-Technical Report Elements Setup
     current_elements = {
         "Silicon (Si)": si_pct, "Magnesium (Mg)": mg_pct, "Aluminum (Al)": al_pct, "Iron (Fe)": fe_pct,
         "Calcium (Ca)": ca_pct, "Titanium (Ti)": ti_pct, "Strontium (Sr)": sr_pct, "Sulfur Primary (S)": s_first_pct,
