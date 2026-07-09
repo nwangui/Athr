@@ -190,7 +190,7 @@ if submit_button:
         matched_zone = classifier_suggested_zone
         resolution_method = "Continuous Regressor Estimation"
 
-    st.success("🎉 Analysis Complete!")
+    st.success(" Analysis Complete!")
 
 
     col_out1, col_out2, col_out3 = st.columns(3)
