@@ -307,5 +307,3 @@ if submit_button:
             **3. Scientific Certainty & Reliability:** This conclusion was cross-validated by running 17 independent chemical parameters simultaneously through separate categorical sorting algorithms and mapping algorithms, guaranteeing both zone verification and raw location estimations.
             """)
 
-    # FORCE STREAMLIT GLOBAL STATE REFRESH FOR PERFORMANCE METRICS PANEL
-    st.rerun()
