@@ -271,7 +271,7 @@ if submit_button:
               * Trace indicators — Specifically **{top1_name} ({top1_val:.2f}%)**, **{top2_name} ({top2_val:.2f}%)**, and **{top3_name} ({top3_val:.2f}%)** - served as primary geographic weights, checking against baseline records to lock down exact location parameters.
 
             **Algorithmic Reasoning:**
-            The hybrid pipeline processed the 17-dimensional chemometric matrix across parallel networks. The categorization layer successfully bypassed coordinate smoothing errors by assigning a definite categorical match (**{matched_zone}**), while the multi-output regressor accurately plotted the continuous spatial coordinates to `({reg_lat:.6f}, {reg_lon:.6f})` without localized averaging limits.
+            The hybrid pipeline processed the 17-dimensional chemometric matrix across parallel networks. The categorization layer successfully bypassed coordinate smoothing errors by assigning a definite categorical match (**{matched_zone}**), while the multi-output regressor accurately plotted the continuous spatial coordinates to `({raw_lat:.6f}, {raw_lon:.6f})` without localized averaging limits.
             """)
 
     with tab2:
