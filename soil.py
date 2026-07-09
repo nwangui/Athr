@@ -156,13 +156,19 @@ if submit_button:
         st.error("🚨 Missing Model Files! Run your training script first.")
         st.stop()
 
-    exact_training_order = ['Si (wt.%)', 'Mg (wt.%)', 'Al (wt.%)', 'Fe (wt.%)', 'Ca (wt.%)', 'Ti (wt.%)', 'Sr (wt.%)',
-                            'S (wt.%)', 'Mn (wt.%)', 'Cr (wt.%)', 'Rh (wt.%)', 'Sc on (wt.%)', 'Zr (wt.%)', 'K (wt.%)',
-                            'P (wt.%)', 'S1 (wt.%)', 'pH']
+    exact_training_order = [
+        'Si (wt.%)', 'Mg (wt.%)', 'Al (wt.%)', 'Fe (wt.%)', 'Ca (wt.%)',
+        'Ti (wt.%)', 'Sr (wt.%)', 'S (wt.%)', 'Mn (wt.%)', 'Cr (wt.%)',
+        'Rh (wt.%)', 'Sc (wt.%)', 'Zr (wt.%)', 'K (wt.%)', 'P (wt.%)',
+        'S1 (wt.%)', 'pH'
+    ]
 
-    # Fix potential key variances cleanly
-    sanitized_evidence = {k: v for k, v in live_unknown_evidence.items()}
-    profile_df = pd.DataFrame([sanitized_evidence])
+    profile_df = pd.DataFrame([{
+        'Si (wt.%)': si_pct, 'Mg (wt.%)': mg_pct, 'Al (wt.%)': al_pct, 'Fe (wt.%)': fe_pct, 'Ca (wt.%)': ca_pct,
+        'Ti (wt.%)': ti_pct, 'Sr (wt.%)': sr_pct, 'S (wt.%)': s_first_pct, 'Mn (wt.%)': mn_pct, 'Cr (wt.%)': cr_pct,
+        'Rh (wt.%)': rh_pct, 'Sc (wt.%)': sc_pct, 'Zr (wt.%)': zr_pct, 'K (wt.%)': k_pct, 'P (wt.%)': p_pct,
+        'S1 (wt.%)': s_second_pct, 'pH': ph_val
+    }])
 
     # Pad missing structural keys down to 0.0 to safely align frames
     for col in exact_training_order:
