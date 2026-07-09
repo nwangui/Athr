@@ -157,36 +157,32 @@ if submit_button:
     # 1. Scale input features and predict raw unconstrained coordinates via Regressor
     scaled_profile = scaler.transform(profile_df)
     predicted_coords = reg_model.predict(scaled_profile)[0]
-    raw_lat, raw_lon = predicted_coords[0], predicted_coords[1]
+    final_lat, final_lon = predicted_coords[0], predicted_coords[1]  # Restored continuous mapping
+    raw_lat, raw_lon = final_lat, final_lon  # Keep references for technical summaries
 
     # 2. Run the Classifier as a baseline theoretical check
     predicted_encoded = cls_model.predict(scaled_profile)[0]
     classifier_suggested_zone = encoder.inverse_transform([predicted_encoded])[0]
 
-    # 3. Use the physical proximity grid to determine the true final zone and snapped pin
+    # 3. Use the physical proximity grid to re-align the label based on nearest raw coordinate
     try:
         db_df = pd.read_excel("UAE Soil Database.xlsx")
         db_df[['Lat', 'Lon']] = db_df['location coordinates'].str.split(',', expand=True).astype(float)
 
         # Calculate straight-line distance across ALL database points to find the true nearest geographic neighbor
         db_df['distance_to_pred'] = np.sqrt(
-            (db_df['Lat'] - raw_lat) ** 2 + (db_df['Lon'] - raw_lon) ** 2
+            (db_df['Lat'] - final_lat) ** 2 + (db_df['Lon'] - final_lon) ** 2
         )
 
-        # Find the absolute closest authentic sample row from the database
+        # Find the absolute closest authentic sample row from the database to extract the correct label
         closest_sample = db_df.loc[db_df['distance_to_pred'].idxmin()]
 
-        # Snap final map coordinates to this physical baseline point
-        final_lat = closest_sample['Lat']
-        final_lon = closest_sample['Lon']
-
-        # FORCE RE-ALIGNMENT: Let proximity geometry overwrite the classification label text
+        # FORCE RE-ALIGNMENT: Update the text label to match the nearest physical sample, leaving coordinates fluid
         matched_zone = closest_sample['Zone Description']
-        resolution_method = f"Spatial Proximity Alignment ({matched_zone})"
+        resolution_method = f"Continuous Regressor Estimation ({matched_zone})"
 
     except Exception as e:
         # Fallback if Excel reading encounters an issue during runtime
-        final_lat, final_lon = raw_lat, raw_lon
         matched_zone = classifier_suggested_zone
         resolution_method = "Continuous Regressor Estimation"
 
