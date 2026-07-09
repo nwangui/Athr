@@ -178,12 +178,12 @@ if submit_button:
 
     col_out1, col_out2, col_out3 = st.columns(3)
     with col_out1:
-        st.metric("Categorical Best Match", matched_zone)
+        st.metric("Geographical Zone Best Match", matched_zone)
     with col_out2:
-        st.metric("Mathematical Latitude", f"{final_lat:.6f}",
+        st.metric("Geographical Latitude", f"{final_lat:.6f}",
                   delta=resolution_method if "Database" in resolution_method else None)
     with col_out3:
-        st.metric("Mathematical Longitude", f"{final_lon:.6f}",
+        st.metric("Geographical Longitude", f"{final_lon:.6f}",
                   delta="Locked to Baseline" if "Database" in resolution_method else None)
 
     # Map Rendering using corrected tracking parameters
@@ -198,8 +198,8 @@ if submit_button:
     st.markdown("---")
     st.header(" Technical and Non-Technical Report")
 
-    soil_type_clue = "mixed mineral baseline cluster"
-    region_clue = "interior or localized mountain-transition profile"
+    soil_type_clue = "Mixed mineral baseline cluster"
+    region_clue = "Interior or localized mountain-transition profile"
     ph_explanation = f"The sample exhibits a natural alkaline profile (pH {ph_val}), which matches the standard geologic background radiation and limestone baseline properties of native UAE terrains."
 
     anomaly_warning = ""
@@ -243,10 +243,10 @@ if submit_button:
         st.markdown(f"""
             **Statistical Attribution Profile:**
             * **Classification Layer Engine:** Random Forest Classifier — Responsible for deterministic region matching.
-            * **Regression Layer Engine:** Multi-Output Random Forest Regressor — Responsible for raw coordinate interpolation.
+            * **Regression Layer Engine:** Multi-Output KNN Regressor — Responsible for raw coordinate interpolation.
             * **Resolved Mineral Signature:** Classified as an active *{soil_type_clue}*.
-            * **Primary Provenance Drivers:** * A stabilization of **pH at {ph_val}** indicates an environmental profile typical of {region_clue}.
-              * Trace indicators—specifically **{top1_name} ({top1_val:.2f}%)**, **{top2_name} ({top2_val:.2f}%)**, and **{top3_name} ({top3_val:.2f}%)** - served as primary geographic weights, checking against baseline records to lock down exact location parameters.
+            * **Primary Provenance Drivers:** * A **pH of {ph_val}** indicates an environmental profile typical of {region_clue}.
+              * Trace indicators — Specifically **{top1_name} ({top1_val:.2f}%)**, **{top2_name} ({top2_val:.2f}%)**, and **{top3_name} ({top3_val:.2f}%)** - served as primary geographic weights, checking against baseline records to lock down exact location parameters.
 
             **Algorithmic Reasoning:**
             The hybrid pipeline processed the 17-dimensional chemometric matrix across parallel networks. The categorization layer successfully bypassed coordinate smoothing errors by assigning a definite categorical match (**{matched_zone}**), while the multi-output regressor accurately plotted the continuous spatial coordinates to `({reg_lat:.6f}, {reg_lon:.6f})` without localized averaging limits.
