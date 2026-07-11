@@ -64,7 +64,7 @@ element_defaults = {
     'ca_pct': 0.00, 'ti_pct': 0.00, 'sr_pct': 0.00, 's_first_pct': 0.00,
     'mn_pct': 0.00, 'cr_pct': 0.00, 'rh_pct': 0.000, 'sc_pct': 0.000,
     'zr_pct': 0.00, 'k_pct': 0.00, 'p_pct': 0.00, 's_second_pct': 0.00,
-    'ph_val': 0.00
+    'ni_pct':0.00, 'ph_val': 0.00
 }
 
 # Bind properties to runtime memory structure
@@ -95,9 +95,9 @@ with col1:
     sr_pct = st.number_input("Strontium — Sr (wt.%)", min_value=0.0, max_value=100.0, format="%.2f", key="sr_pct")
     s_first_pct = st.number_input("Sulfur Primary — S (wt.%)", min_value=0.0, max_value=100.0, format="%.2f",
                                   key="s_first_pct")
+    mn_pct = st.number_input("Manganese — Mn (wt.%)", min_value=0.0, max_value=100.0, format="%.2f", key="mn_pct")
 
 with col2:
-    mn_pct = st.number_input("Manganese — Mn (wt.%)", min_value=0.0, max_value=100.0, format="%.2f", key="mn_pct")
     cr_pct = st.number_input("Chromium — Cr (wt.%)", min_value=0.0, max_value=100.0, format="%.2f", key="cr_pct")
     rh_pct = st.number_input("Rhodium — Rh (wt.%)", min_value=0.0, max_value=100.0, format="%.3f", key="rh_pct")
     sc_pct = st.number_input("Scandium — Sc (wt.%)", min_value=0.0, max_value=100.0, format="%.3f", key="sc_pct")
@@ -106,6 +106,7 @@ with col2:
     p_pct = st.number_input("Phosphorus — P (wt.%)", min_value=0.0, max_value=100.0, format="%.2f", key="p_pct")
     s_second_pct = st.number_input("Sulfur Secondary — S1 (wt.%)", min_value=0.0, max_value=100.0, format="%.2f",
                                    key="s_second_pct")
+    ni_pct = st.number_input("Nitrate — Ni (wt.%)", min_value=0.0, max_value=100.0, format="%.2f", key="p_pct")
     # Extended max boundary parameters specifically to allow manual test overrides for out-of-bounds metrics
     ph_val = st.number_input("Soil pH acidity/alkalinity scale", min_value=0.0, max_value=150.0, format="%.2f",
                              key="ph_val")
@@ -142,7 +143,7 @@ if submit_button:
         'Si (wt.%)': si_pct, 'Mg (wt.%)': mg_pct, 'Al (wt.%)': al_pct, 'Fe (wt.%)': fe_pct, 'Ca (wt.%)': ca_pct,
         'Ti (wt.%)': ti_pct, 'Sr (wt.%)': sr_pct, 'S (wt.%)': s_first_pct, 'Mn (wt.%)': mn_pct, 'Cr (wt.%)': cr_pct,
         'Rh (wt.%)': rh_pct, 'Sc (wt.%)': sc_pct, 'Zr (wt.%)': zr_pct, 'K (wt.%)': k_pct, 'P (wt.%)': p_pct,
-        'S1 (wt.%)': s_second_pct, 'pH': ph_val
+        'S1 (wt.%)': s_second_pct, 'Ni (wt.%)':ni_pct, 'pH': ph_val
     }
 
     st.info(" Processing sample through combined classification and regression pipelines...")
@@ -160,14 +161,14 @@ if submit_button:
         'Si (wt.%)', 'Mg (wt.%)', 'Al (wt.%)', 'Fe (wt.%)', 'Ca (wt.%)',
         'Ti (wt.%)', 'Sr (wt.%)', 'S (wt.%)', 'Mn (wt.%)', 'Cr (wt.%)',
         'Rh (wt.%)', 'Sc (wt.%)', 'Zr (wt.%)', 'K (wt.%)', 'P (wt.%)',
-        'S1 (wt.%)', 'pH'
+        'S1 (wt.%)', 'Ni (wt.%)', 'pH'
     ]
 
     profile_df = pd.DataFrame([{
         'Si (wt.%)': si_pct, 'Mg (wt.%)': mg_pct, 'Al (wt.%)': al_pct, 'Fe (wt.%)': fe_pct, 'Ca (wt.%)': ca_pct,
         'Ti (wt.%)': ti_pct, 'Sr (wt.%)': sr_pct, 'S (wt.%)': s_first_pct, 'Mn (wt.%)': mn_pct, 'Cr (wt.%)': cr_pct,
         'Rh (wt.%)': rh_pct, 'Sc (wt.%)': sc_pct, 'Zr (wt.%)': zr_pct, 'K (wt.%)': k_pct, 'P (wt.%)': p_pct,
-        'S1 (wt.%)': s_second_pct, 'pH': ph_val
+        'S1 (wt.%)': s_second_pct, 'Ni (wt.%)':ni_pct, 'pH': ph_val
     }])
 
     # Pad missing structural keys down to 0.0 to safely align frames
@@ -264,7 +265,8 @@ if submit_button:
         "Silicon (Si)": si_pct, "Magnesium (Mg)": mg_pct, "Aluminum (Al)": al_pct, "Iron (Fe)": fe_pct,
         "Calcium (Ca)": ca_pct, "Titanium (Ti)": ti_pct, "Strontium (Sr)": sr_pct, "Sulfur Primary (S)": s_first_pct,
         "Manganese (Mn)": mn_pct, "Chromium (Cr)": cr_pct, "Rhodium (Rh)": rh_pct, "Scandium (Sc)": sc_pct,
-        "Zirconium (Zr)": zr_pct, "Potassium (K)": k_pct, "Phosphorus (P)": p_pct, "Sulfur Secondary (S1)": s_second_pct
+        "Zirconium (Zr)": zr_pct, "Potassium (K)": k_pct, "Phosphorus (P)": p_pct, "Sulfur Secondary (S1)": s_second_pct,
+        "Nitrate (Ni)": ni_pct
     }
     # Sort from highest concentration to lowest
     sorted_elements = sorted(current_elements.items(), key=lambda x: x[1], reverse=True)

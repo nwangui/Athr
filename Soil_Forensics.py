@@ -91,7 +91,7 @@ feature_columns = [
     'Si (wt.%)', 'Mg (wt.%)', 'Al (wt.%)', 'Fe (wt.%)', 'Ca (wt.%)',
     'Ti (wt.%)', 'Sr (wt.%)', 'S (wt.%)', 'Mn (wt.%)', 'Cr (wt.%)',
     'Rh (wt.%)', 'Sc (wt.%)', 'Zr (wt.%)', 'K (wt.%)', 'P (wt.%)',
-    'S1 (wt.%)', 'pH'
+    'S1 (wt.%)','Ni (wt.%)', 'pH'
 ]
 
 feature_columns = [col for col in feature_columns if col in df.columns]
