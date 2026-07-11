@@ -106,7 +106,7 @@ with col2:
     p_pct = st.number_input("Phosphorus — P (wt.%)", min_value=0.0, max_value=100.0, format="%.2f", key="p_pct")
     s_second_pct = st.number_input("Sulfur Secondary — S1 (wt.%)", min_value=0.0, max_value=100.0, format="%.2f",
                                    key="s_second_pct")
-    ni_pct = st.number_input("Nitrate — Ni (wt.%)", min_value=0.0, max_value=100.0, format="%.2f", key="ni_pct")
+    ni_pct = st.number_input("Nickel — Ni (wt.%)", min_value=0.0, max_value=100.0, format="%.2f", key="ni_pct")
     # Extended max boundary parameters specifically to allow manual test overrides for out-of-bounds metrics
     ph_val = st.number_input("Soil pH acidity/alkalinity scale", min_value=0.0, max_value=150.0, format="%.2f",
                              key="ph_val")
