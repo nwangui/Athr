@@ -192,7 +192,7 @@ if submit_button:
 
     # 3. Use the physical proximity grid to re-align the label based on nearest raw coordinate
     try:
-        db_df = pd.read_excel("UAE Soil Database.xlsx")
+        db_df = pd.read_excel("UAE_Soil_Forensics_Database_XRF.xlsx")
         db_df[['Lat', 'Lon']] = db_df['location coordinates'].str.split(',', expand=True).astype(float)
 
         # Calculate straight-line distance across ALL database points to find the true nearest geographic neighbor
