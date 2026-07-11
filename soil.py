@@ -33,7 +33,6 @@ def load_performance_metrics():
     live_mse = "N/A"
     if os.path.exists("model_accuracy_metrics.json"):
         try:
-            # Open with an explicit read to bypass any system file stream locks
             with open("model_accuracy_metrics.json", "r") as f:
                 saved_metrics = json.load(f)
                 live_error = f"{saved_metrics['avg_error_km']} km"
@@ -58,24 +57,20 @@ with diag_col3: st.metric(label="Model Architecture", value="Hybrid Ensemble", d
 # ==========================================================
 # STATE MANAGEMENT & ELEMENT CONFIGURATION
 # ==========================================================
-# All inputs initialize to 0.00 to guarantee a clean system startup
-element_defaults = {
-    'si_pct': 0.00, 'mg_pct': 0.00, 'al_pct': 0.00, 'fe_pct': 0.00,
-    'ca_pct': 0.00, 'ti_pct': 0.00, 'sr_pct': 0.00, 's_first_pct': 0.00,
-    'mn_pct': 0.00, 'cr_pct': 0.00, 'rh_pct': 0.000, 'sc_pct': 0.000,
-    'zr_pct': 0.00, 'k_pct': 0.00, 'p_pct': 0.00, 's_second_pct': 0.00,
-    'ni_pct': 0.00, 'ph_val': 0.00
-}
+element_keys = [
+    'si_input', 'mg_input', 'al_input', 'fe_input', 'ca_input',
+    'ti_input', 'sr_input', 's_first_input', 'mn_input', 'cr_input',
+    'rh_input', 'sc_input', 'zr_input', 'k_input', 'p_input',
+    's_second_input', 'ni_input', 'ph_input'
+]
 
-# Bind properties to runtime memory structure
-for key, default_val in element_defaults.items():
+for key in element_keys:
     if key not in st.session_state:
-        st.session_state[key] = default_val
+        st.session_state[key] = 0.00
 
 
-# Structural wipe routine tied directly to button trigger
 def reset_elemental_inputs():
-    for key in element_defaults.keys():
+    for key in element_keys:
         st.session_state[key] = 0.00
 
 
@@ -86,31 +81,30 @@ st.markdown("### Forensic Elemental Analysis Input ")
 col1, col2 = st.columns(2)
 
 with col1:
-    si_pct = st.number_input("Silicon — Si (wt.%)", min_value=0.0, max_value=100.0, format="%.2f", key="si_pct")
-    mg_pct = st.number_input("Magnesium — Mg (wt.%)", min_value=0.0, max_value=100.0, format="%.2f", key="mg_pct")
-    al_pct = st.number_input("Aluminum — Al (wt.%)", min_value=0.0, max_value=100.0, format="%.2f", key="al_pct")
-    fe_pct = st.number_input("Iron — Fe (wt.%)", min_value=0.0, max_value=100.0, format="%.2f", key="fe_pct")
-    ca_pct = st.number_input("Calcium — Ca (wt.%)", min_value=0.0, max_value=100.0, format="%.2f", key="ca_pct")
-    ti_pct = st.number_input("Titanium — Ti (wt.%)", min_value=0.0, max_value=100.0, format="%.2f", key="ti_pct")
-    sr_pct = st.number_input("Strontium — Sr (wt.%)", min_value=0.0, max_value=100.0, format="%.2f", key="sr_pct")
+    si_pct = st.number_input("Silicon — Si (wt.%)", min_value=0.0, max_value=100.0, format="%.2f", key="si_input")
+    mg_pct = st.number_input("Magnesium — Mg (wt.%)", min_value=0.0, max_value=100.0, format="%.2f", key="mg_input")
+    al_pct = st.number_input("Aluminum — Al (wt.%)", min_value=0.0, max_value=100.0, format="%.2f", key="al_input")
+    fe_pct = st.number_input("Iron — Fe (wt.%)", min_value=0.0, max_value=100.0, format="%.2f", key="fe_input")
+    ca_pct = st.number_input("Calcium — Ca (wt.%)", min_value=0.0, max_value=100.0, format="%.2f", key="ca_input")
+    ti_pct = st.number_input("Titanium — Ti (wt.%)", min_value=0.0, max_value=100.0, format="%.2f", key="ti_input")
+    sr_pct = st.number_input("Strontium — Sr (wt.%)", min_value=0.0, max_value=100.0, format="%.2f", key="sr_input")
     s_first_pct = st.number_input("Sulfur Primary — S (wt.%)", min_value=0.0, max_value=100.0, format="%.2f",
-                                  key="s_first_pct")
-    mn_pct = st.number_input("Manganese — Mn (wt.%)", min_value=0.0, max_value=100.0, format="%.2f", key="mn_pct")
+                                  key="s_first_input")
+    mn_pct = st.number_input("Manganese — Mn (wt.%)", min_value=0.0, max_value=100.0, format="%.2f", key="mn_input")
 
 with col2:
-    cr_pct = st.number_input("Chromium — Cr (wt.%)", min_value=0.0, max_value=100.0, format="%.2f", key="cr_pct")
-    rh_pct = st.number_input("Rhodium — Rh (wt.%)", min_value=0.0, max_value=100.0, format="%.3f", key="rh_pct")
-    sc_pct = st.number_input("Scandium — Sc (wt.%)", min_value=0.0, max_value=100.0, format="%.3f", key="sc_pct")
-    zr_pct = st.number_input("Zirconium — Zr (wt.%)", min_value=0.0, max_value=100.0, format="%.2f", key="zr_pct")
-    k_pct = st.number_input("Potassium — K (wt.%)", min_value=0.0, max_value=100.0, format="%.2f", key="k_pct")
-    p_pct = st.number_input("Phosphorus — P (wt.%)", min_value=0.0, max_value=100.0, format="%.2f", key="p_pct")
+    cr_pct = st.number_input("Chromium — Cr (wt.%)", min_value=0.0, max_value=100.0, format="%.2f", key="cr_input")
+    rh_pct = st.number_input("Rhodium — Rh (wt.%)", min_value=0.0, max_value=100.0, format="%.3f", key="rh_input")
+    sc_pct = st.number_input("Scandium — Sc (wt.%)", min_value=0.0, max_value=100.0, format="%.3f", key="sc_input")
+    zr_pct = st.number_input("Zirconium — Zr (wt.%)", min_value=0.0, max_value=100.0, format="%.2f", key="zr_input")
+    k_pct = st.number_input("Potassium — K (wt.%)", min_value=0.0, max_value=100.0, format="%.2f", key="k_input")
+    p_pct = st.number_input("Phosphorus — P (wt.%)", min_value=0.0, max_value=100.0, format="%.2f", key="p_input")
     s_second_pct = st.number_input("Sulfur Secondary — S1 (wt.%)", min_value=0.0, max_value=100.0, format="%.2f",
-                                   key="s_second_pct")
-    ni_pct = st.number_input("Nickel — Ni (wt.%)", min_value=0.0, max_value=100.0, format="%.2f", key="ni_pct")
+                                   key="s_second_input")
+    ni_pct = st.number_input("Nickel — Ni (wt.%)", min_value=0.0, max_value=100.0, format="%.2f", key="ni_input")
     ph_val = st.number_input("Soil pH acidity/alkalinity scale", min_value=0.0, max_value=150.0, format="%.2f",
-                             key="ph_val")
+                             key="ph_input")
 
-# UI Action Alignment Blocks
 btn_col1, btn_col2 = st.columns([1, 4])
 with btn_col1:
     st.button("Clear / Reset", on_click=reset_elemental_inputs, type="secondary", use_container_width=True)
@@ -121,7 +115,6 @@ with btn_col2:
 # EXECUTION PIPELINE & VALIDATION RUN
 # ==========================================================
 if submit_button:
-    # 1. EMPTY RUN INTEGRITY CHECK
     total_elements_input = (
             si_pct + mg_pct + al_pct + fe_pct + ca_pct + ti_pct + sr_pct +
             s_first_pct + mn_pct + cr_pct + rh_pct + sc_pct + zr_pct + k_pct +
@@ -132,18 +125,10 @@ if submit_button:
             "⚠️ **Input Required:** Please enter the elemental composition percentages for the soil sample before running the provenance mapping engine.")
         st.stop()
 
-    # 2. PH SCALE OUT-OF-BOUNDS VALIDATION
     if ph_val > 14.0:
         st.error(
             f"🚨 **Critical Input Anomaly Detected:** pH value of {ph_val} is physically impossible. Please verify your lab instrumentation readout.")
         st.stop()
-
-    live_unknown_evidence = {
-        'Si (wt.%)': si_pct, 'Mg (wt.%)': mg_pct, 'Al (wt.%)': al_pct, 'Fe (wt.%)': fe_pct, 'Ca (wt.%)': ca_pct,
-        'Ti (wt.%)': ti_pct, 'Sr (wt.%)': sr_pct, 'S (wt.%)': s_first_pct, 'Mn (wt.%)': mn_pct, 'Cr (wt.%)': cr_pct,
-        'Rh (wt.%)': rh_pct, 'Sc (wt.%)': sc_pct, 'Zr (wt.%)': zr_pct, 'K (wt.%)': k_pct, 'P (wt.%)': p_pct,
-        'S1 (wt.%)': s_second_pct, 'Ni (wt.%)': ni_pct, 'pH': ph_val
-    }
 
     st.info(" Processing sample through combined classification and regression pipelines...")
 
@@ -170,63 +155,68 @@ if submit_button:
         'S1 (wt.%)': s_second_pct, 'Ni (wt.%)': ni_pct, 'pH': ph_val
     }])
 
-    # Pad missing structural keys down to 0.0 to safely align frames
-    for col in exact_training_order:
-        if col not in profile_df.columns:
-            profile_df[col] = 0.00
-
-    profile_df = profile_df[exact_training_order]
+    if hasattr(scaler, "feature_names_in_"):
+        expected_cols = list(scaler.feature_names_in_)
+        for col in expected_cols:
+            if col not in profile_df.columns:
+                profile_df[col] = 0.0
+        profile_df = profile_df[expected_cols]
+    else:
+        for col in exact_training_order:
+            if col not in profile_df.columns:
+                profile_df[col] = 0.00
+        profile_df = profile_df[exact_training_order]
 
     # ==========================================================
     # SPATIAL-FIRST LABEL REALIGNMENT PIPELINE
     # ==========================================================
-    # 1. Scale input features and predict raw unconstrained coordinates via Regressor
     scaled_profile = scaler.transform(profile_df)
     predicted_coords = reg_model.predict(scaled_profile)[0]
-    final_lat, final_lon = predicted_coords[0], predicted_coords[1]  # Continuous mapping output
-    raw_lat, raw_lon = final_lat, final_lon  # Keep references for technical summaries
+    final_lat, final_lon = predicted_coords[0], predicted_coords[1]
+    raw_lat, raw_lon = final_lat, final_lon
 
-    # 2. Run the Classifier as a baseline theoretical check
     predicted_encoded = cls_model.predict(scaled_profile)[0]
     classifier_suggested_zone = encoder.inverse_transform([predicted_encoded])[0]
 
-    # 3. Use the physical proximity grid to re-align the label based on nearest raw coordinate
+    # 🛠️ Safe parsing logic for reference coordinate matrix
     try:
         db_df = pd.read_excel("UAE_Soil_Forensics_Database_XRF.xlsx")
-        db_df[['Lat', 'Lon']] = db_df['location coordinates'].str.split(',', expand=True).astype(float)
+        db_df = db_df.dropna(subset=['location coordinates'])
+        db_df['location coordinates'] = db_df['location coordinates'].astype(str)
 
-        # Calculate straight-line distance across ALL database points to find the true nearest geographic neighbor
-        db_df['distance_to_pred'] = np.sqrt(
-            (db_df['Lat'] - final_lat) ** 2 + (db_df['Lon'] - final_lon) ** 2
-        )
+        coords_split = db_df['location coordinates'].str.split(',', expand=True)
+        if coords_split.shape[1] >= 2:
+            db_df['Lat'] = pd.to_numeric(coords_split[0], errors='coerce')
+            db_df['Lon'] = pd.to_numeric(coords_split[1], errors='coerce')
+            db_df = db_df.dropna(subset=['Lat', 'Lon'])
 
-        # Find the absolute closest authentic sample row from the database to extract the correct label
-        closest_sample = db_df.loc[db_df['distance_to_pred'].idxmin()]
+            db_df['distance_to_pred'] = np.sqrt(
+                (db_df['Lat'] - final_lat) ** 2 + (db_df['Lon'] - final_lon) ** 2
+            )
 
-        # FORCE RE-ALIGNMENT: Update the text label to match the nearest physical sample, leaving coordinates fluid
-        matched_zone = closest_sample['Zone Description']
-
-        # Fixed: Included the term "Continuous" so the UI logic tracking checks match properly
-        resolution_method = f"Continuous Regressor Estimation ({matched_zone})"
+            closest_sample = db_df.loc[db_df['distance_to_pred'].idxmin()]
+            matched_zone = closest_sample['Zone Description']
+            resolution_method = f"Continuous Regressor Estimation ({matched_zone})"
+        else:
+            raise ValueError("Invalid spatial schema format inside file column profiles.")
 
     except Exception as e:
         matched_zone = classifier_suggested_zone
         resolution_method = "Continuous Regressor Estimation"
 
+    # ✨ Shifted this right under the try block to avoid UI screen refresh cancellation loops
     st.success(" Analysis Complete!")
 
     col_out1, col_out2, col_out3 = st.columns(3)
     with col_out1:
         st.metric("Geographical Zone Best Match", matched_zone)
     with col_out2:
-        # Fixed: Match string variable criteria against 'Continuous' to ensure delta updates live
         st.metric("Geographical Latitude", f"{final_lat:.6f}",
                   delta=resolution_method if "Continuous" in resolution_method else None)
     with col_out3:
         st.metric("Geographical Longitude", f"{final_lon:.6f}",
                   delta="Locked to Baseline" if "Continuous" in resolution_method else None)
 
-    # Map Rendering using corrected tracking parameters
     st.markdown("### 🗺️ Predicted Soil Sample Spatial Origin")
     map_data = pd.DataFrame({'lat': [final_lat], 'lon': [final_lon]})
     st.map(map_data, zoom=12)
@@ -261,16 +251,13 @@ if submit_button:
         ph_explanation = f"🌱 **MODIFIED ANOMALY:** The sample exhibits a mildly acidic profile (pH {ph_val}). Because native UAE soils are naturally basic, this indicates localized soil modification."
         anomaly_warning = "💡 **FORENSIC NOTE FOR INVESTIGATORS:** This profile is typical of heavily managed agricultural ecosystems, commercial indoor greenhouses, or imported parkland topsoils treated with sulfur and organic fertilizers."
 
-    # Technical and Non-Technical Report Elements Setup
     current_elements = {
         "Silicon (Si)": si_pct, "Magnesium (Mg)": mg_pct, "Aluminum (Al)": al_pct, "Iron (Fe)": fe_pct,
         "Calcium (Ca)": ca_pct, "Titanium (Ti)": ti_pct, "Strontium (Sr)": sr_pct, "Sulfur Primary (S)": s_first_pct,
         "Manganese (Mn)": mn_pct, "Chromium (Cr)": cr_pct, "Rhodium (Rh)": rh_pct, "Scandium (Sc)": sc_pct,
         "Zirconium (Zr)": zr_pct, "Potassium (K)": k_pct, "Phosphorus (P)": p_pct,
-        "Sulfur Secondary (S1)": s_second_pct,
-        "Nickel (Ni)": ni_pct
+        "Sulfur Secondary (S1)": s_second_pct, "Nickel (Ni)": ni_pct
     }
-    # Sort from highest concentration to lowest
     sorted_elements = sorted(current_elements.items(), key=lambda x: x[1], reverse=True)
     top1_name, top1_val = sorted_elements[0]
     top2_name, top2_val = sorted_elements[1]
