@@ -9,23 +9,76 @@ import joblib
 import json
 
 
-# ==========================================
-# 1. HAVERSINE DISTANCE FUNCTION
-# ==========================================
-def haversine_distance(lat1, lon1, lat2, lon2):
-    lat1, lon1, lat2, lon2 = map(np.radians, [lat1, lon1, lat2, lon2])
-    dlat = lat2 - lat1
-    dlon = lon2 - lon1
-    a = np.sin(dlat / 2) ** 2 + np.cos(lat1) * np.cos(lat2) * np.sin(dlon / 2) ** 2
-    c = 2 * np.arcsin(np.sqrt(a))
-    return c * 6371.0
+# ==========================================================
+# 1. VINCENTY GEODESIC DISTANCE FUNCTION (WGS-84 VECTORIZED)
+# ==========================================================
+def vincenty_distance(lat1, lon1, lat2, lon2):
+    """
+    Computes geodesic distance between coordinate matrices using Vincenty's Formulae
+    mapped precisely to the WGS-84 oblate spheroid framework. Fully vectorized for arrays.
+    """
+    # WGS-84 ellipsoid parameters
+    a_axis = 6378137.0  # equatorial radius in meters
+    f_flat = 1 / 298.257223563
+    b_axis = (1 - f_flat) * a_axis
+
+    # Convert decimal degrees to radians safely as arrays
+    phi1, lam1 = np.radians(lat1), np.radians(lon1)
+    phi2, lam2 = np.radians(lat2), np.radians(lon2)
+
+    u1 = np.arctan((1 - f_flat) * np.tan(phi1))
+    u2 = np.arctan((1 - f_flat) * np.tan(phi2))
+    L = lam2 - lam1
+
+    sin_u1, cos_u1 = np.sin(u1), np.cos(u1)
+    sin_u2, cos_u2 = np.sin(u2), np.cos(u2)
+
+    # Initialize lambda convergence tracking tracking
+    lam_val = np.copy(L)
+
+    for _ in range(100):
+        sin_lam, cos_lam = np.sin(lam_val), np.cos(lam_val)
+        sin_sigma = np.sqrt((cos_u2 * sin_lam) ** 2 + (cos_u1 * sin_u2 - sin_u1 * cos_u2 * cos_lam) ** 2)
+
+        # Catch convergence failures due to overlapping points safely via mask
+        cos_sigma = sin_u1 * sin_u2 + cos_u1 * cos_u2 * cos_lam
+        sigma = np.arctan2(sin_sigma, cos_sigma)
+
+        sin_alpha = np.where(sin_sigma == 0, 0, cos_u1 * cos_u2 * sin_lam / sin_sigma)
+        cos2_alpha = 1 - sin_alpha ** 2
+
+        # Handle equator configurations safely
+        cos2_sigma_m = np.where(cos2_alpha == 0, 0, cos_sigma - 2 * sin_u1 * sin_u2 / cos2_alpha)
+
+        C = (f_flat / 16) * cos2_alpha * (4 + f_flat * (4 - 3 * cos2_alpha))
+        lam_prev = np.copy(lam_val)
+        lam_val = L + (1 - C) * f_flat * sin_alpha * (
+                sigma + C * sin_sigma * (cos2_sigma_m + C * cos_sigma * (-1 + 2 * cos2_sigma_m ** 2)))
+
+        # Check convergence thresholds across the matrix batch
+        if np.all(np.abs(lam_val - lam_prev) < 1e-12):
+            break
+
+    u2_scale = cos2_alpha * (a_axis ** 2 - b_axis ** 2) / (b_axis ** 2)
+    A = 1 + (u2_scale / 16384) * (4096 + u2_scale * (-768 + u2_scale * (320 - 175 * u2_scale)))
+    B = (u2_scale / 1024) * (256 + u2_scale * (-128 + u2_scale * (74 - 47 * u2_scale)))
+
+    delta_sigma = B * sin_sigma * (cos2_sigma_m + (B / 4) * (
+            cos_sigma * (-1 + 2 * cos2_sigma_m ** 2) - (B / 6) * cos2_sigma_m * (-3 + 4 * sin_sigma ** 2) * (
+            -3 + 4 * cos2_sigma_m ** 2)))
+
+    # Calculate physical value and scale down meters to kilometers
+    distance_km = (b_axis * A * (sigma - delta_sigma)) / 1000.0
+
+    # Force any identical coordinate positions cleanly to exactly 0.0 km
+    return np.where(sin_sigma == 0, 0.0, distance_km)
 
 
 # ==========================================
 # 2. LIVE EXCEL DATABASE LOADING
 # ==========================================
 try:
-    df = pd.read_excel("UAE Soil Database.xlsx")
+    df = pd.read_excel("UAE_Soil_Forensics_Database_XRF.xlsx")
     print(" Success: Loaded 'UAE Soil Database.xlsx' successfully.")
 except FileNotFoundError:
     print("❌ Error: 'UAE Soil Database.xlsx' not found.")
@@ -84,11 +137,11 @@ X_test_scaled = scaler.transform(X_test)
 # ==========================================
 print(" Training Hybrid AI Engine (Classifier + Regressor)...")
 
-# Train Classifier for zone  detection
+# Train Classifier for zone detection
 classifier_model = RandomForestClassifier(n_estimators=150, max_depth=12, random_state=42)
 classifier_model.fit(X_train_scaled, y_train_cls)
 
-# Train Regressor for unknown coordinates mapping. High-efficiency spatial proximity engine for small datasets
+# Train Regressor for unknown coordinates mapping
 regressor_model = KNeighborsRegressor(n_neighbors=3, weights='distance')
 regressor_model.fit(X_train_scaled, y_train_reg)
 
@@ -103,8 +156,14 @@ print(" Success: Exported hybrid analytical files to folder.")
 # ==========================================
 reg_preds = regressor_model.predict(X_test_scaled)
 mse = mean_squared_error(y_test_reg, reg_preds)
-distances = haversine_distance(y_test_reg['Latitude'].values, y_test_reg['Longitude'].values, reg_preds[:, 0],
-                               reg_preds[:, 1])
+
+# Run robust arrays directly through updated Vincenty validator
+distances = vincenty_distance(
+    y_test_reg['Latitude'].values,
+    y_test_reg['Longitude'].values,
+    reg_preds[:, 0],
+    reg_preds[:, 1]
+)
 avg_error = distances.mean()
 
 metrics_payload = {
@@ -115,10 +174,10 @@ metrics_payload = {
 with open("model_accuracy_metrics.json", "w") as f:
     json.dump(metrics_payload, f)
 
-print("\n" + "="*50)
-print("Model Accuracy Metrics:")
-print("="*50)
+print("\n" + "=" * 50)
+print("Model Accuracy Metrics")
+print("=" * 50)
 print(json.dumps(metrics_payload, indent=4))
-print("="*50 + "\n")
+print("=" * 50 + "\n")
 
 print("✅ Success: Performance metrics shared to JSON.")
