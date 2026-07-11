@@ -33,7 +33,7 @@ def vincenty_distance(lat1, lon1, lat2, lon2):
     sin_u1, cos_u1 = np.sin(u1), np.cos(u1)
     sin_u2, cos_u2 = np.sin(u2), np.cos(u2)
 
-    # Initialize lambda convergence tracking tracking
+    # Initialize lambda convergence tracking
     lam_val = np.copy(L)
 
     for _ in range(100):
@@ -75,13 +75,13 @@ def vincenty_distance(lat1, lon1, lat2, lon2):
 
 
 # ==========================================
-# 2. LIVE EXCEL DATABASE LOADING
+# 2. LIVE EXCEL DATABASE LOADING & ROUTING
 # ==========================================
 try:
     df = pd.read_excel("UAE_Soil_Forensics_Database_XRF.xlsx")
-    print(" Success: Loaded 'UAE Soil Database.xlsx' successfully.")
+    print(" Success: Loaded 'UAE_Soil_Forensics_Database_XRF.xlsx' successfully.")
 except FileNotFoundError:
-    print("❌ Error: 'UAE Soil Database.xlsx' not found.")
+    print("❌ Error: 'UAE_Soil_Forensics_Database_XRF.xlsx' not found.")
     exit()
 
 # Parse Coordinates for the Regressor
@@ -96,13 +96,14 @@ feature_columns = [
 
 feature_columns = [col for col in feature_columns if col in df.columns]
 
+# Fill missing elements globally so we do NOT drop rows for the Classifier
 for col in feature_columns:
     df[col] = df[col].fillna(0.0)
 
 if 'pH' in df.columns:
     df['pH'] = df['pH'].replace(0.0, 8.0).fillna(8.0)
 
-# Build Target Outputs
+# Process Classifications targets
 if 'Zone Description' in df.columns:
     df['Zone Description'] = df['Zone Description'].fillna("General Regional Cluster")
 
@@ -118,46 +119,61 @@ else:
     print("❌ Error: 'Zone Description' column missing from Excel sheet.")
     exit()
 
-X = df[feature_columns]
-y_regressor = df[['Latitude', 'Longitude']]
+# --------------------------------------------------------
+# PARALLEL PIPELINE ROUTING BLOCK
+# --------------------------------------------------------
+# 1. Pipeline A: Classifier gets 100% of the entries (even without coordinates)
+X_cls = df[feature_columns]
 y_classifier = df['Zone_Encoded']
 
-print(f"✅ Data recovery complete. Rows found: {len(df)}")
+# 2. Pipeline B: Regressor gets isolated, NaN-free coordinate subsets
+df_reg_clean = df.dropna(subset=['Latitude', 'Longitude'])
+X_reg = df_reg_clean[feature_columns]
+y_regressor = df_reg_clean[['Latitude', 'Longitude']]
 
-# --- Split Using 80:20 training and testing split
-X_train, X_test, y_train_reg, y_test_reg = train_test_split(X, y_regressor, test_size=0.2, random_state=42)
-_, _, y_train_cls, y_test_cls = train_test_split(X, y_classifier, test_size=0.2, random_state=42)
+print(f"✅ Data recovery complete. Rows compiled for Classifier: {len(df)}")
+print(f"📍 Rows containing geographic coordinates for Regressor: {len(df_reg_clean)}")
 
-scaler = StandardScaler()
-X_train_scaled = scaler.fit_transform(X_train)
-X_test_scaled = scaler.transform(X_test)
+# --- Perform Independent 80:20 Training/Testing Splits
+X_train_cls, X_test_cls, y_train_cls, y_test_cls = train_test_split(X_cls, y_classifier, test_size=0.2, random_state=42)
+X_train_reg, X_test_reg, y_train_reg, y_test_reg = train_test_split(X_reg, y_regressor, test_size=0.2, random_state=42)
+
+# Fit and apply dedicated scalers to avoid target leakages
+scaler_cls = StandardScaler()
+X_train_cls_scaled = scaler_cls.fit_transform(X_train_cls)
+X_test_cls_scaled = scaler_cls.transform(X_test_cls)
+
+scaler_reg = StandardScaler()
+X_train_reg_scaled = scaler_reg.fit_transform(X_train_reg)
+X_test_reg_scaled = scaler_reg.transform(X_test_reg)
 
 # ==========================================
 # 3. TRAIN BOTH PIPELINES
 # ==========================================
 print(" Training Hybrid AI Engine (Classifier + Regressor)...")
 
-# Train Classifier for zone detection
+# Train Random Forest Classifier for zone detection
 classifier_model = RandomForestClassifier(n_estimators=150, max_depth=12, random_state=42)
-classifier_model.fit(X_train_scaled, y_train_cls)
+classifier_model.fit(X_train_cls_scaled, y_train_cls)
 
-# Train Regressor for unknown coordinates mapping
+# Train KNN Regressor for continuous coordinates mapping
 regressor_model = KNeighborsRegressor(n_neighbors=3, weights='distance')
-regressor_model.fit(X_train_scaled, y_train_reg)
+regressor_model.fit(X_train_reg_scaled, y_train_reg)
 
-# Save all assets to disk
+# Save engine configurations to deployment directory
 joblib.dump(regressor_model, "uae_soil_regressor.engine")
 joblib.dump(classifier_model, "uae_soil_classifier.engine")
-joblib.dump(scaler, "soil_scaler.pkl")
+joblib.dump(scaler_reg, "soil_scaler.pkl")  # Saving the regressor scaler for user input mapping
 print(" Success: Exported hybrid analytical files to folder.")
 
 # ==========================================
 # 4. DIAGNOSTICS & METRIC GENERATION
 # ==========================================
-reg_preds = regressor_model.predict(X_test_scaled)
+# Predict using the isolated clean spatial testing subset
+reg_preds = regressor_model.predict(X_test_reg_scaled)
 mse = mean_squared_error(y_test_reg, reg_preds)
 
-# Run robust arrays directly through updated Vincenty validator
+# Run robust arrays directly through Vincenty validator
 distances = vincenty_distance(
     y_test_reg['Latitude'].values,
     y_test_reg['Longitude'].values,
