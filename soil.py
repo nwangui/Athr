@@ -266,7 +266,7 @@ if submit_button:
         "Calcium (Ca)": ca_pct, "Titanium (Ti)": ti_pct, "Strontium (Sr)": sr_pct, "Sulfur Primary (S)": s_first_pct,
         "Manganese (Mn)": mn_pct, "Chromium (Cr)": cr_pct, "Rhodium (Rh)": rh_pct, "Scandium (Sc)": sc_pct,
         "Zirconium (Zr)": zr_pct, "Potassium (K)": k_pct, "Phosphorus (P)": p_pct, "Sulfur Secondary (S1)": s_second_pct,
-        "Nitrate (Ni)": ni_pct
+        "Nickel (Ni)": ni_pct
     }
     # Sort from highest concentration to lowest
     sorted_elements = sorted(current_elements.items(), key=lambda x: x[1], reverse=True)
