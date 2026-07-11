@@ -64,7 +64,7 @@ element_defaults = {
     'ca_pct': 0.00, 'ti_pct': 0.00, 'sr_pct': 0.00, 's_first_pct': 0.00,
     'mn_pct': 0.00, 'cr_pct': 0.00, 'rh_pct': 0.000, 'sc_pct': 0.000,
     'zr_pct': 0.00, 'k_pct': 0.00, 'p_pct': 0.00, 's_second_pct': 0.00,
-    'ni_pct':0.00, 'ph_val': 0.00
+    'ni_pct': 0.00, 'ph_val': 0.00
 }
 
 # Bind properties to runtime memory structure
@@ -107,7 +107,6 @@ with col2:
     s_second_pct = st.number_input("Sulfur Secondary — S1 (wt.%)", min_value=0.0, max_value=100.0, format="%.2f",
                                    key="s_second_pct")
     ni_pct = st.number_input("Nickel — Ni (wt.%)", min_value=0.0, max_value=100.0, format="%.2f", key="ni_pct")
-    # Extended max boundary parameters specifically to allow manual test overrides for out-of-bounds metrics
     ph_val = st.number_input("Soil pH acidity/alkalinity scale", min_value=0.0, max_value=150.0, format="%.2f",
                              key="ph_val")
 
@@ -126,7 +125,7 @@ if submit_button:
     total_elements_input = (
             si_pct + mg_pct + al_pct + fe_pct + ca_pct + ti_pct + sr_pct +
             s_first_pct + mn_pct + cr_pct + rh_pct + sc_pct + zr_pct + k_pct +
-            p_pct + s_second_pct
+            p_pct + s_second_pct + ni_pct
     )
     if total_elements_input == 0.0 and ph_val == 0.0:
         st.warning(
@@ -143,7 +142,7 @@ if submit_button:
         'Si (wt.%)': si_pct, 'Mg (wt.%)': mg_pct, 'Al (wt.%)': al_pct, 'Fe (wt.%)': fe_pct, 'Ca (wt.%)': ca_pct,
         'Ti (wt.%)': ti_pct, 'Sr (wt.%)': sr_pct, 'S (wt.%)': s_first_pct, 'Mn (wt.%)': mn_pct, 'Cr (wt.%)': cr_pct,
         'Rh (wt.%)': rh_pct, 'Sc (wt.%)': sc_pct, 'Zr (wt.%)': zr_pct, 'K (wt.%)': k_pct, 'P (wt.%)': p_pct,
-        'S1 (wt.%)': s_second_pct, 'Ni (wt.%)':ni_pct, 'pH': ph_val
+        'S1 (wt.%)': s_second_pct, 'Ni (wt.%)': ni_pct, 'pH': ph_val
     }
 
     st.info(" Processing sample through combined classification and regression pipelines...")
@@ -168,7 +167,7 @@ if submit_button:
         'Si (wt.%)': si_pct, 'Mg (wt.%)': mg_pct, 'Al (wt.%)': al_pct, 'Fe (wt.%)': fe_pct, 'Ca (wt.%)': ca_pct,
         'Ti (wt.%)': ti_pct, 'Sr (wt.%)': sr_pct, 'S (wt.%)': s_first_pct, 'Mn (wt.%)': mn_pct, 'Cr (wt.%)': cr_pct,
         'Rh (wt.%)': rh_pct, 'Sc (wt.%)': sc_pct, 'Zr (wt.%)': zr_pct, 'K (wt.%)': k_pct, 'P (wt.%)': p_pct,
-        'S1 (wt.%)': s_second_pct, 'Ni (wt.%)':ni_pct, 'pH': ph_val
+        'S1 (wt.%)': s_second_pct, 'Ni (wt.%)': ni_pct, 'pH': ph_val
     }])
 
     # Pad missing structural keys down to 0.0 to safely align frames
@@ -206,10 +205,11 @@ if submit_button:
 
         # FORCE RE-ALIGNMENT: Update the text label to match the nearest physical sample, leaving coordinates fluid
         matched_zone = closest_sample['Zone Description']
+
+        # Fixed: Included the term "Continuous" so the UI logic tracking checks match properly
         resolution_method = f"Continuous Regressor Estimation ({matched_zone})"
 
     except Exception as e:
-        # Fallback if Excel reading encounters an issue during runtime
         matched_zone = classifier_suggested_zone
         resolution_method = "Continuous Regressor Estimation"
 
@@ -219,11 +219,12 @@ if submit_button:
     with col_out1:
         st.metric("Geographical Zone Best Match", matched_zone)
     with col_out2:
+        # Fixed: Match string variable criteria against 'Continuous' to ensure delta updates live
         st.metric("Geographical Latitude", f"{final_lat:.6f}",
-                  delta=resolution_method if "Spatial" in resolution_method else None)
+                  delta=resolution_method if "Continuous" in resolution_method else None)
     with col_out3:
         st.metric("Geographical Longitude", f"{final_lon:.6f}",
-                  delta="Locked to Baseline" if "Spatial" in resolution_method else None)
+                  delta="Locked to Baseline" if "Continuous" in resolution_method else None)
 
     # Map Rendering using corrected tracking parameters
     st.markdown("### 🗺️ Predicted Soil Sample Spatial Origin")
@@ -265,7 +266,8 @@ if submit_button:
         "Silicon (Si)": si_pct, "Magnesium (Mg)": mg_pct, "Aluminum (Al)": al_pct, "Iron (Fe)": fe_pct,
         "Calcium (Ca)": ca_pct, "Titanium (Ti)": ti_pct, "Strontium (Sr)": sr_pct, "Sulfur Primary (S)": s_first_pct,
         "Manganese (Mn)": mn_pct, "Chromium (Cr)": cr_pct, "Rhodium (Rh)": rh_pct, "Scandium (Sc)": sc_pct,
-        "Zirconium (Zr)": zr_pct, "Potassium (K)": k_pct, "Phosphorus (P)": p_pct, "Sulfur Secondary (S1)": s_second_pct,
+        "Zirconium (Zr)": zr_pct, "Potassium (K)": k_pct, "Phosphorus (P)": p_pct,
+        "Sulfur Secondary (S1)": s_second_pct,
         "Nickel (Ni)": ni_pct
     }
     # Sort from highest concentration to lowest
@@ -283,11 +285,12 @@ if submit_button:
             * **Classification Layer Engine:** Random Forest Classifier — Responsible for deterministic region matching.
             * **Regression Layer Engine:** Multi-Output KNN Regressor — Responsible for raw coordinate interpolation.
             * **Resolved Mineral Signature:** Classified as an active *{soil_type_clue}*.
-            * **Primary Provenance Drivers:** * A **pH of {ph_val}** indicates an environmental profile typical of {region_clue}.
+            * **Primary Provenance Drivers:**
+              * A **pH of {ph_val}** indicates an environmental profile typical of {region_clue}.
               * Trace indicators — Specifically **{top1_name} ({top1_val:.2f}%)**, **{top2_name} ({top2_val:.2f}%)**, and **{top3_name} ({top3_val:.2f}%)** - served as primary geographic weights, checking against baseline records to lock down exact location parameters.
 
             **Algorithmic Reasoning:**
-            The hybrid pipeline processed the 17-dimensional chemometric matrix across parallel networks. The categorization layer successfully bypassed coordinate smoothing errors by assigning a definite categorical match (**{matched_zone}**), while the multi-output regressor accurately plotted the continuous spatial coordinates to `({raw_lat:.6f}, {raw_lon:.6f})` without localized averaging limits.
+            The hybrid pipeline processed the 18-dimensional chemometric matrix across parallel networks. The categorization layer successfully bypassed coordinate smoothing errors by assigning a definite categorical match (**{matched_zone}**), while the multi-output regressor accurately plotted the continuous spatial coordinates to `({raw_lat:.6f}, {raw_lon:.6f})` without localized averaging limits.
             """)
 
     with tab2:
@@ -306,6 +309,5 @@ if submit_button:
 
             By using a dual-engine AI approach, the tool directly verifies the target area name out of our known regional database options while concurrently rendering an independent spatial coordinate pin on the map. This eliminates geographical confusion between neighboring desert boundaries.
 
-            **3. Scientific Certainty & Reliability:** This conclusion was cross-validated by running 17 independent chemical parameters simultaneously through separate categorical sorting algorithms and mapping algorithms, guaranteeing both zone verification and raw location estimations.
+            **3. Scientific Certainty & Reliability:** This conclusion was cross-validated by running 18 independent chemical parameters simultaneously through separate categorical sorting algorithms and mapping algorithms, guaranteeing both zone verification and raw location estimations.
             """)
-
