@@ -157,7 +157,7 @@ classifier_model = RandomForestClassifier(n_estimators=150, max_depth=12, random
 classifier_model.fit(X_train_cls_scaled, y_train_cls)
 
 # Train KNN Regressor for continuous coordinates mapping
-regressor_model = KNeighborsRegressor(n_neighbors=1, weights='distance')
+regressor_model = KNeighborsRegressor(n_neighbors=2, weights='distance')
 regressor_model.fit(X_train_reg_scaled, y_train_reg)
 
 # Save engine configurations to deployment directory
