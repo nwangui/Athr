@@ -175,36 +175,44 @@ if submit_button:
     final_lat, final_lon = predicted_coords[0], predicted_coords[1]
     raw_lat, raw_lon = final_lat, final_lon
 
+    # 1. Get the discrete classification guess first
     predicted_encoded = cls_model.predict(scaled_profile)[0]
     classifier_suggested_zone = encoder.inverse_transform([predicted_encoded])[0]
 
-    # 🛠️ Safe parsing logic for reference coordinate matrix
     try:
         db_df = pd.read_excel("UAE_Soil_Forensics_Database_XRF.xlsx")
         db_df = db_df.dropna(subset=['location coordinates'])
-        db_df['location coordinates'] = db_df['location coordinates'].astype(str)
 
-        coords_split = db_df['location coordinates'].str.split(',', expand=True)
-        if coords_split.shape[1] >= 2:
-            db_df['Lat'] = pd.to_numeric(coords_split[0], errors='coerce')
-            db_df['Lon'] = pd.to_numeric(coords_split[1], errors='coerce')
-            db_df = db_df.dropna(subset=['Lat', 'Lon'])
+        # 🔒 STEP 2: Restrict the proximity matrix to ONLY rows matching the classified zone
+        zone_matched_df = db_df[db_df['Zone Description'].str.upper() == classifier_suggested_zone.upper()]
 
-            db_df['distance_to_pred'] = np.sqrt(
-                (db_df['Lat'] - final_lat) ** 2 + (db_df['Lon'] - final_lon) ** 2
-            )
-
-            closest_sample = db_df.loc[db_df['distance_to_pred'].idxmin()]
-            matched_zone = closest_sample['Zone Description']
-            resolution_method = f"Continuous Regressor Estimation ({matched_zone})"
+        # Fallback to the full database only if the classifier returns a completely unseen zone
+        if not zone_matched_df.empty:
+            target_df = zone_matched_df.copy()
         else:
-            raise ValueError("Invalid spatial schema format inside file column profiles.")
+            target_df = db_df.copy()
+
+        target_df['location coordinates'] = target_df['location coordinates'].astype(str)
+        coords_split = target_df['location coordinates'].str.split(',', expand=True)
+
+        target_df['Lat'] = pd.to_numeric(coords_split[0], errors='coerce')
+        target_df['Lon'] = pd.to_numeric(coords_split[1], errors='coerce')
+        target_df = target_df.dropna(subset=['Lat', 'Lon'])
+
+        # Calculate distance strictly within the verified zone boundaries
+        target_df['distance_to_pred'] = np.sqrt(
+            (target_df['Lat'] - final_lat) ** 2 + (target_df['Lon'] - final_lon) ** 2
+        )
+
+        closest_sample = target_df.loc[target_df['distance_to_pred'].idxmin()]
+        matched_zone = closest_sample['Zone Description']
+        resolution_method = f"Continuous Regressor Estimation ({matched_zone})"
 
     except Exception as e:
         matched_zone = classifier_suggested_zone
-        resolution_method = "Continuous Regressor Estimation"
+        resolution_method = "Continuous Regressor Estimation (Classifier Fallback)"
 
-    # ✨ Shifted this right under the try block to avoid UI screen refresh cancellation loops
+    # After Analysis
     st.success(" Analysis Complete!")
 
     col_out1, col_out2, col_out3 = st.columns(3)
