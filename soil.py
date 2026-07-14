@@ -303,7 +303,7 @@ if submit_button:
 
             {anomaly_warning}
 
-            By using a dual-engine AI approach, the tool directly verifies the target area name out of our known regional database options while concurrently rendering an independent spatial coordinate pin on the map.
+            By using a dual-engine AI approach, the provenance tool directly verifies the location area name out of our known regional database options while concurrently rendering an independent spatial coordinate pin on the map.
 
             **3. Scientific Certainty & Reliability:** This conclusion was cross-validated by running 18 independent chemical parameters simultaneously through the two machine learning algorithms, which determine and verify the zone and predicted location coordinates.
             """)
