@@ -17,12 +17,10 @@ def vincenty_distance(lat1, lon1, lat2, lon2):
     Computes geodesic distance between coordinate matrices using Vincenty's Formulae
     mapped precisely to the WGS-84 oblate spheroid framework. Fully vectorized for arrays.
     """
-    # WGS-84 ellipsoid parameters
-    a_axis = 6378137.0  # equatorial radius in meters
+    a_axis = 6378137.0
     f_flat = 1 / 298.257223563
     b_axis = (1 - f_flat) * a_axis
 
-    # Convert decimal degrees to radians safely as arrays
     phi1, lam1 = np.radians(lat1), np.radians(lon1)
     phi2, lam2 = np.radians(lat2), np.radians(lon2)
 
@@ -33,21 +31,18 @@ def vincenty_distance(lat1, lon1, lat2, lon2):
     sin_u1, cos_u1 = np.sin(u1), np.cos(u1)
     sin_u2, cos_u2 = np.sin(u2), np.cos(u2)
 
-    # Initialize lambda convergence tracking
     lam_val = np.copy(L)
 
     for _ in range(100):
         sin_lam, cos_lam = np.sin(lam_val), np.cos(lam_val)
         sin_sigma = np.sqrt((cos_u2 * sin_lam) ** 2 + (cos_u1 * sin_u2 - sin_u1 * cos_u2 * cos_lam) ** 2)
 
-        # Catch convergence failures due to overlapping points safely via mask
         cos_sigma = sin_u1 * sin_u2 + cos_u1 * cos_u2 * cos_lam
         sigma = np.arctan2(sin_sigma, cos_sigma)
 
         sin_alpha = np.where(sin_sigma == 0, 0, cos_u1 * cos_u2 * sin_lam / sin_sigma)
         cos2_alpha = 1 - sin_alpha ** 2
 
-        # Handle equator configurations safely
         cos2_sigma_m = np.where(cos2_alpha == 0, 0, cos_sigma - 2 * sin_u1 * sin_u2 / cos2_alpha)
 
         C = (f_flat / 16) * cos2_alpha * (4 + f_flat * (4 - 3 * cos2_alpha))
@@ -55,7 +50,6 @@ def vincenty_distance(lat1, lon1, lat2, lon2):
         lam_val = L + (1 - C) * f_flat * sin_alpha * (
                 sigma + C * sin_sigma * (cos2_sigma_m + C * cos_sigma * (-1 + 2 * cos2_sigma_m ** 2)))
 
-        # Check convergence thresholds across the matrix batch
         if np.all(np.abs(lam_val - lam_prev) < 1e-12):
             break
 
@@ -67,10 +61,7 @@ def vincenty_distance(lat1, lon1, lat2, lon2):
             cos_sigma * (-1 + 2 * cos2_sigma_m ** 2) - (B / 6) * cos2_sigma_m * (-3 + 4 * sin_sigma ** 2) * (
             -3 + 4 * cos2_sigma_m ** 2)))
 
-    # Calculate physical value and scale down meters to kilometers
     distance_km = (b_axis * A * (sigma - delta_sigma)) / 1000.0
-
-    # Force any identical coordinate positions cleanly to exactly 0.0 km
     return np.where(sin_sigma == 0, 0.0, distance_km)
 
 
@@ -84,7 +75,6 @@ except FileNotFoundError:
     print("❌ Error: 'UAE Soil Database.xlsx' not found.")
     exit()
 
-# Parse Coordinates for the Regressor
 df[['Latitude', 'Longitude']] = df['location coordinates'].str.split(',', expand=True).astype(float)
 
 feature_columns = [
@@ -96,23 +86,19 @@ feature_columns = [
 
 feature_columns = [col for col in feature_columns if col in df.columns]
 
-# Fill missing elements globally so we do NOT drop rows for the Classifier
 for col in feature_columns:
     df[col] = df[col].fillna(0.0)
 
 if 'pH' in df.columns:
     df['pH'] = df['pH'].replace(0.0, 8.0).fillna(8.0)
 
-# Process Classifications targets
 if 'Zone Description' in df.columns:
     df['Zone Description'] = df['Zone Description'].fillna("General Regional Cluster")
 
-    # Fit Label Encoder for Classifier
     label_encoder = LabelEncoder()
     df['Zone_Encoded'] = label_encoder.fit_transform(df['Zone Description'])
     joblib.dump(label_encoder, "soil_label_encoder.pkl")
 
-    # Compile reference lookup file
     df[['Zone Description', 'Latitude', 'Longitude']].to_pickle("soil_reference_lookup.pkl")
     print(f" Reference lookup database compiled.")
 else:
@@ -122,33 +108,28 @@ else:
 # --------------------------------------------------------
 # PARALLEL PIPELINE ROUTING BLOCK
 # --------------------------------------------------------
-# 1. Pipeline A: Classifier gets 100% of the entries (even without coordinates)
 X_cls = df[feature_columns]
 y_classifier = df['Zone_Encoded']
 
-# 2. Pipeline B: Regressor gets isolated, NaN-free coordinate subsets
-df_reg_clean = df.dropna(subset=['Latitude', 'Longitude'])
+# 🔒 FIX: Reset the index completely after dropping missing values
+df_reg_clean = df.dropna(subset=['Latitude', 'Longitude']).reset_index(drop=True)
 X_reg = df_reg_clean[feature_columns]
 y_regressor = df_reg_clean[['Latitude', 'Longitude']]
 
 print(f"✅ Data recovery complete. Rows compiled for Classifier: {len(df)}")
 print(f"📍 Rows containing geographic coordinates for Regressor: {len(df_reg_clean)}")
 
-# --- Perform Independent 80:20 Training/Testing Splits
 X_train_cls, X_test_cls, y_train_cls, y_test_cls = train_test_split(X_cls, y_classifier, test_size=0.2, random_state=42)
 X_train_reg, X_test_reg, y_train_reg, y_test_reg = train_test_split(X_reg, y_regressor, test_size=0.2, random_state=42)
 
 # --------------------------------------------------------
 # 🛠️ UNIFIED PREPROCESSING (MINMAX SCALER)
 # --------------------------------------------------------
-# We train a unified MinMaxScaler using the entire feature set to prevent scaling distortion
 unified_scaler = MinMaxScaler()
-unified_scaler.fit(X_cls)  # Fits boundaries based on the complete dataset spectrum
+unified_scaler.fit(X_cls)
 
-# Save this unified scaler immediately for the Streamlit dashboard
 joblib.dump(unified_scaler, "soil_scaler.pkl")
 
-# Apply the clean scaled transformations
 X_train_cls_scaled = unified_scaler.transform(X_train_cls)
 X_test_cls_scaled = unified_scaler.transform(X_test_cls)
 
@@ -161,15 +142,12 @@ X_test_reg_scaled = unified_scaler.transform(X_test_reg)
 # ==========================================
 print(" Training Hybrid AI Engine (Classifier + Regressor)...")
 
-# Train Random Forest Classifier for zone detection
 classifier_model = RandomForestClassifier(n_estimators=150, max_depth=12, random_state=42)
 classifier_model.fit(X_train_cls_scaled, y_train_cls)
 
-# Train KNN Regressor with distance-weighted modeling using the scaled coordinate boundaries
 regressor_model = KNeighborsRegressor(n_neighbors=3, weights='distance')
 regressor_model.fit(X_train_reg_scaled, y_train_reg)
 
-# Save engine configurations to deployment directory
 joblib.dump(regressor_model, "uae_soil_regressor.engine")
 joblib.dump(classifier_model, "uae_soil_classifier.engine")
 print(" Success: Exported hybrid analytical files to folder.")
@@ -177,14 +155,16 @@ print(" Success: Exported hybrid analytical files to folder.")
 # ==========================================
 # 4. DIAGNOSTICS & METRIC GENERATION
 # ==========================================
-# Predict using the isolated clean spatial testing subset
 reg_preds = regressor_model.predict(X_test_reg_scaled)
 mse = mean_squared_error(y_test_reg, reg_preds)
 
-# Run robust arrays directly through Vincenty validator
+# 🔒 FIX: Extract clean arrays with guaranteed position alignment
+true_lats = y_test_reg['Latitude'].to_numpy()
+true_lons = y_test_reg['Longitude'].to_numpy()
+
 distances = vincenty_distance(
-    y_test_reg['Latitude'].values,
-    y_test_reg['Longitude'].values,
+    true_lats,
+    true_lons,
     reg_preds[:, 0],
     reg_preds[:, 1]
 )
