@@ -51,7 +51,7 @@ live_error, live_mse = load_performance_metrics()
 st.markdown("### 📊 Dual-Engine Performance Metrics")
 diag_col1, diag_col2, diag_col3 = st.columns(3)
 with diag_col1: st.metric(label="Regressor Precision Radius", value=live_error, delta="Continuous Mapping Mode")
-with diag_col2: st.metric(label="Structural Fit Index (MSE)", value=live_mse, delta="Variance Threshold Stability")
+with diag_col2: st.metric(label="Mean Squared Error (MSE)", value=live_mse, delta="Variance Threshold Stability")
 with diag_col3: st.metric(label="Model Architecture", value="Hybrid Ensemble", delta="Parallel Pipelines Live")
 
 # ==========================================================
