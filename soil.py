@@ -298,7 +298,7 @@ if submit_button:
 
             **2. Explanation of Location Selection:** Every region leaves a unique **"chemical fingerprint"** in its soil based on its rock formations and unique element footprints.
             
-            - *{region_clue} 
+            - *{region_clue}* 
             - *{ph_explanation}*
 
             {anomaly_warning}
