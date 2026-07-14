@@ -298,9 +298,9 @@ if submit_button:
 
             **2. Explanation of Location Selection:** Every region leaves a unique "chemical fingerprint" in its soil based on its rock formations, unique element footprints, and human usage. 
 
-            {ph_explanation}
+            **{ph_explanation}**
 
-            {anomaly_warning}
+           ** {anomaly_warning}**
 
             By using a dual-engine AI approach, the tool directly verifies the target area name out of our known regional database options while concurrently rendering an independent spatial coordinate pin on the map. This eliminates geographical confusion between neighboring desert boundaries.
 
