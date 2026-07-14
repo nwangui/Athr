@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.preprocessing import MinMaxScaler, LabelEncoder
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.metrics import mean_squared_error
@@ -138,14 +138,23 @@ print(f"📍 Rows containing geographic coordinates for Regressor: {len(df_reg_c
 X_train_cls, X_test_cls, y_train_cls, y_test_cls = train_test_split(X_cls, y_classifier, test_size=0.2, random_state=42)
 X_train_reg, X_test_reg, y_train_reg, y_test_reg = train_test_split(X_reg, y_regressor, test_size=0.2, random_state=42)
 
-# Fit and apply dedicated scalers to avoid target leakages
-scaler_cls = StandardScaler()
-X_train_cls_scaled = scaler_cls.fit_transform(X_train_cls)
-X_test_cls_scaled = scaler_cls.transform(X_test_cls)
+# --------------------------------------------------------
+# 🛠️ UNIFIED PREPROCESSING (MINMAX SCALER)
+# --------------------------------------------------------
+# We train a unified MinMaxScaler using the entire feature set to prevent scaling distortion
+unified_scaler = MinMaxScaler()
+unified_scaler.fit(X_cls)  # Fits boundaries based on the complete dataset spectrum
 
-scaler_reg = StandardScaler()
-X_train_reg_scaled = scaler_reg.fit_transform(X_train_reg)
-X_test_reg_scaled = scaler_reg.transform(X_test_reg)
+# Save this unified scaler immediately for the Streamlit dashboard
+joblib.dump(unified_scaler, "soil_scaler.pkl")
+
+# Apply the clean scaled transformations
+X_train_cls_scaled = unified_scaler.transform(X_train_cls)
+X_test_cls_scaled = unified_scaler.transform(X_test_cls)
+
+X_train_reg_scaled = unified_scaler.transform(X_train_reg)
+X_test_reg_scaled = unified_scaler.transform(X_test_reg)
+
 
 # ==========================================
 # 3. TRAIN BOTH PIPELINES
@@ -156,14 +165,13 @@ print(" Training Hybrid AI Engine (Classifier + Regressor)...")
 classifier_model = RandomForestClassifier(n_estimators=150, max_depth=12, random_state=42)
 classifier_model.fit(X_train_cls_scaled, y_train_cls)
 
-# Train KNN Regressor for continuous coordinates mapping
+# Train KNN Regressor with distance-weighted modeling using the scaled coordinate boundaries
 regressor_model = KNeighborsRegressor(n_neighbors=3, weights='distance')
 regressor_model.fit(X_train_reg_scaled, y_train_reg)
 
 # Save engine configurations to deployment directory
 joblib.dump(regressor_model, "uae_soil_regressor.engine")
 joblib.dump(classifier_model, "uae_soil_classifier.engine")
-joblib.dump(scaler_reg, "soil_scaler.pkl")  # Saving the regressor scaler for user input mapping
 print(" Success: Exported hybrid analytical files to folder.")
 
 # ==========================================
@@ -191,7 +199,7 @@ with open("model_accuracy_metrics.json", "w") as f:
     json.dump(metrics_payload, f)
 
 print("\n" + "=" * 50)
-print("Model Accuracy Metrics")
+print("Model Accuracy Metrics (WGS-84 Vincenty Model)")
 print("=" * 50)
 print(json.dumps(metrics_payload, indent=4))
 print("=" * 50 + "\n")
