@@ -237,7 +237,7 @@ if submit_button:
 
     soil_type_clue = "Mixed mineral baseline cluster"
     region_clue = "Interior or localized mountain-transition profile"
-    ph_explanation = f"The sample exhibits a natural alkaline profile (pH {ph_val}), which matches the standard geologic background radiation and limestone baseline properties of native UAE terrains."
+    ph_explanation = f"The sample exhibits a natural alkaline profile (pH {ph_val}), which matches the standard geologic background and limestone baseline properties of native UAE terrains."
 
     anomaly_warning = ""
     if fe_pct > 8.0 or mg_pct > 6.0:
@@ -257,7 +257,7 @@ if submit_button:
     elif 4.5 < ph_val <= 6.5:
         soil_type_clue = "Artificially Managed / Cultivated Soil Topsoil"
         ph_explanation = f"🌱 **MODIFIED ANOMALY:** The sample exhibits a mildly acidic profile (pH {ph_val}). Because native UAE soils are naturally basic, this indicates localized soil modification."
-        anomaly_warning = "💡 **FORENSIC NOTE FOR INVESTIGATORS:** This profile is typical of heavily managed agricultural ecosystems, commercial indoor greenhouses, or imported parkland topsoils treated with sulfur and organic fertilizers."
+        anomaly_warning = "💡 **FORENSIC NOTE FOR INVESTIGATORS:** This profile is typical of heavily managed agricultural ecosystems, commercial indoor greenhouses, or imported parkland top soils treated with sulfur and organic fertilizers."
 
     current_elements = {
         "Silicon (Si)": si_pct, "Magnesium (Mg)": mg_pct, "Aluminum (Al)": al_pct, "Iron (Fe)": fe_pct,
@@ -291,14 +291,15 @@ if submit_button:
     with tab2:
         st.subheader("Forensic Fact-Sheet for Judicial Presentation")
         st.markdown(f"""
-            > **Expert Evidence Report Summary** > ** Analysis Reference:** Unknown Trace Evidence Soil Sample  
+            > **Expert Evidence Report Summary** > **Analysis Reference:** Unknown Trace Evidence Soil Sample  
             > **Analytical Method:** Hybrid Chemometric Classification & Machine Learning Mapping 
 
             **1. Core Finding:** The chemical and environmental profile of the soil sample submitted for analysis matches the exact category boundaries of the **{matched_zone}** zone, with the localized geographic origin centered near map coordinates **{final_lat:.4f}, {final_lon:.4f}**.
 
-            **2. Explanation of Location Selection:** Every region leaves a unique **"chemical fingerprint"** in its soil based on its rock formations, unique element footprints, and human usage. 
-
-            **{ph_explanation}**
+            **2. Explanation of Location Selection:** Every region leaves a unique **"chemical fingerprint"** in its soil based on its rock formations and unique element footprints.
+            
+            - *{region_clue} 
+            - *{ph_explanation}*
 
             {anomaly_warning}
 
