@@ -78,10 +78,10 @@ def vincenty_distance(lat1, lon1, lat2, lon2):
 # 2. LIVE EXCEL DATABASE LOADING & ROUTING
 # ==========================================
 try:
-    df = pd.read_excel("UAE_Soil_Forensics_Database_XRF.xlsx")
-    print(" Success: Loaded 'UAE_Soil_Forensics_Database_XRF.xlsx' successfully.")
+    df = pd.read_excel("UAE Soil Database.xlsx")
+    print(" Success: Loaded 'UAE Soil Database.xlsx' successfully.")
 except FileNotFoundError:
-    print("❌ Error: 'UAE_Soil_Forensics_Database_XRF.xlsx' not found.")
+    print("❌ Error: 'UAE Soil Database.xlsx' not found.")
     exit()
 
 # Parse Coordinates for the Regressor

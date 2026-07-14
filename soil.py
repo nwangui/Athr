@@ -180,7 +180,7 @@ if submit_button:
     classifier_suggested_zone = encoder.inverse_transform([predicted_encoded])[0]
 
     try:
-        db_df = pd.read_excel("UAE_Soil_Forensics_Database_XRF.xlsx")
+        db_df = pd.read_excel("UAE Soil Database.xlsx")
         db_df = db_df.dropna(subset=['location coordinates'])
 
         # 🔒 STEP 2: Restrict the proximity matrix to ONLY rows matching the classified zone
