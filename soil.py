@@ -291,12 +291,12 @@ if submit_button:
     with tab2:
         st.subheader("Forensic Fact-Sheet for Judicial Presentation")
         st.markdown(f"""
-            > **EXPERT EVIDENCE REPORT SUMMARY** > **Target Analysis Reference:** Unknown Trace Evidence Soil Sample  
+            > **Expert Evidence Report Summary** > ** Analysis Reference:** Unknown Trace Evidence Soil Sample  
             > **Analytical Method:** Hybrid Chemometric Classification & Machine Learning Mapping 
 
             **1. Core Finding:** The chemical and environmental profile of the soil sample submitted for analysis matches the exact category boundaries of the **{matched_zone}** zone, with the localized geographic origin centered near map coordinates **{final_lat:.4f}, {final_lon:.4f}**.
 
-            **2. Non-Technical Explanation of Location Selection:** Every region leaves a unique "chemical fingerprint" in its soil based on its rock formations, unique element footprints, and human usage. 
+            **2. Explanation of Location Selection:** Every region leaves a unique "chemical fingerprint" in its soil based on its rock formations, unique element footprints, and human usage. 
 
             {ph_explanation}
 
