@@ -21,7 +21,7 @@ with logo_col_right: st.image("dubai_pol.png", width=150)
 st.markdown("<hr style='margin-top: 0px; margin-bottom: 25px;'>", unsafe_allow_html=True)
 st.title(" Athr Forensic Soil Provenance Mapping Dashboard")
 st.write(
-    "This is an artificial intelligence tool that utilizes parallel multi-output random forest regression layers alongside classification encoders to determine the geographic location and map coordinate values simultaneously."
+    "This is an artificial intelligence tool that utilizes parallel multi-output KNN regression layers alongside random forest classification encoders to determine the geographic location and map coordinate values of soil samples simultaneously."
 )
 
 
